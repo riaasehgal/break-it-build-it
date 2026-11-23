@@ -1,0 +1,12 @@
+{
+  "name": "buildit",
+  "version": "1.0.0",
+  "description": "Build-It live-fix demo tool for Break It / Build It workshop",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
