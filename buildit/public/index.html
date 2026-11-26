@@ -64,10 +64,16 @@
       border-bottom: 1px solid var(--line);
       position: relative; z-index: 5;
     }
-    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 15px; text-decoration: none; letter-spacing: -.02em; }
+    .brand { white-space: nowrap; display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 15px; text-decoration: none; letter-spacing: -.02em; }
     .brand-mark { width: 14px; height: 18px; background: var(--green); display: inline-block; animation: blink 1.1s steps(1) infinite; }
     .brand .dim { font-weight: 500; color: var(--ink-2); }
-    .nav-meta { color: var(--ink-2); }
+    /* Hosts, as on every slide of the deck. */
+    /* Dark pill: the logos are made for black and the nav changes colour per chapter. */
+    .orgs { display: flex; align-items: center; gap: 10px; flex: none; height: 36px; padding: 0 14px; border-radius: 999px; background: #05060f; color: #a1a1aa; font-size: 12px; }
+    .orgs img { display: block; width: auto; height: 22px; }
+    .orgs .org-iss { height: 24px; }
+    .boot-orgs { position: absolute; top: 28px; left: 32px; z-index: 1; gap: 14px; height: auto; padding: 0; background: none; }
+    .boot-orgs img { height: 32px; } .boot-orgs .org-iss { height: 38px; }
     .nav-spacer { flex: 1; }
     .pill {
       display: inline-flex; align-items: center; gap: 8px;
@@ -376,12 +382,15 @@
     @media (max-width: 1100px) {
       .frame { grid-template-columns: auto 240px minmax(0, 1fr); }
       .index button { font-size: 12px; }
-      .nav-meta { display: none; }
+      .nav .org-gdg { width: 40px; object-fit: cover; object-position: left; }
+      .brand .dim, .cta-long { display: none; }
       .detail { position: fixed; inset: var(--nav-h) 0 0 0; z-index: 40; background: rgba(5,6,15,.97); padding-bottom: 40px; }
     }
     @media (max-width: 760px) {
       .nav { gap: 10px; padding: 0 10px; }
-      .brand .dim, #motionBtn, .pill { display: none; }
+      #motionBtn, .pill { display: none; }
+      .boot-orgs { top: 18px; left: 18px; }
+      .boot-orgs img { height: 24px; } .boot-orgs .org-iss { height: 28px; }
       .frame { display: flex; flex-direction: column; height: auto; }
       .wordmark { display: block; }
       .wm-sub, .wm-word { writing-mode: horizontal-tb; transform: none; }
@@ -407,6 +416,7 @@
 <h1 class="sr">Build-It: break_it / build_it live-fix console</h1>
 
 <div class="boot" id="boot" hidden aria-hidden="true">
+  <span class="orgs boot-orgs"><img src="/logos/gdg-sheridan.png" alt="Google Developer Group, Sheridan College" class="org-gdg"><span class="x" aria-hidden="true">×</span><img src="/logos/issessions.png" alt="ISSessions" class="org-iss"></span>
   <div class="term"><div class="term-bar"><i></i><i></i><i></i></div>
     <div class="boot-line glitch" id="bootLine" data-text="> break_it">&gt; break_it<i class="cursor"></i></div>
   </div>
@@ -414,17 +424,17 @@
 
 <header class="nav">
   <a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span>Build-It <span class="dim">Fall '26</span></a>
-  <span class="nav-meta">ISS × GDG on Campus Sheridan</span>
+  <span class="orgs"><img src="/logos/gdg-sheridan.png" alt="Google Developer Group, Sheridan College" class="org-gdg"><span class="x" aria-hidden="true">×</span><img src="/logos/issessions.png" alt="ISSessions" class="org-iss"></span>
   <span class="nav-spacer"></span>
   <span class="pill" id="score" role="status"><i></i><span>scanning…</span></span>
   <button class="nav-btn" id="motionBtn" type="button" aria-pressed="false">Pause motion</button>
-  <a class="nav-cta" href="http://localhost:3000" target="_blank" rel="noopener">Open Juice Shop ↗</a>
+  <a class="nav-cta" href="http://localhost:3000" target="_blank" rel="noopener"><span class="cta-long">Open&nbsp;</span>Juice Shop ↗</a>
 </header>
 
 <div class="frame">
   <div class="wordmark" aria-hidden="true">
     <span class="wm-sub" data-enter>Hack an app, then patch it. OWASP Juice Shop v20.1.1</span>
-    <span class="wm-word glitch" id="wordmark" data-text="break_it" data-enter>break_it</span>
+    <span class="wm-word glitch" id="wordmark" data-text="build_it" data-enter>build_it</span>
   </div>
 
   <aside class="rail">
@@ -445,7 +455,7 @@
     </div>
     <div class="card keys" data-enter style="--i:4">
       <h2>Keys</h2>
-      <p><kbd>1</kbd>–<kbd>6</kbd> open a hole<br><kbd>⌘</kbd><kbd>S</kbd> save fix · <kbd>Esc</kbd> back</p>
+      <p><kbd>1</kbd>–<kbd>6</kbd> open a hole<br><kbd>⌘</kbd><kbd>S</kbd> build it · <kbd>Esc</kbd> back</p>
     </div>
   </aside>
 
@@ -585,10 +595,10 @@
     pill.classList.toggle('done', open === 0)
     pill.querySelector('span').textContent = open === 0 ? 'all holes patched' : `${open} hole${open > 1 ? 's' : ''} open`
     const wm = $('wordmark')
-    const word = open === 0 && live.length ? 'build_it' : 'break_it'
-    wm.textContent = word; wm.dataset.text = word
-    wm.classList.toggle('built', word === 'build_it')
-    wm.classList.toggle('glitch', word === 'break_it')
+    // Glitched while holes are open, clean green once all are patched.
+    const allFixed = open === 0 && live.length > 0
+    wm.classList.toggle('built', allFixed)
+    wm.classList.toggle('glitch', !allFixed)
   }
 
   // ── Detail ────────────────────────────────────────────────────────────────
@@ -671,7 +681,7 @@
               <textarea id="codeEditor" spellcheck="false" aria-label="Code for ${escHtml(v.file)}">${escHtml(v.currentCode)}</textarea>
             </div>
             <div class="actions">
-              <button class="btn go" id="btnApplyFix" type="button">Save fix <kbd>⌘S</kbd></button>
+              <button class="btn go" id="btnApplyFix" type="button">Build it <kbd>⌘S</kbd></button>
               <button class="btn ghost" id="btnShowFix" type="button">Load reference fix</button>
               <button class="btn danger" id="btnReset" type="button">Reset to vulnerable</button>
             </div>
@@ -732,7 +742,7 @@
   function showFix () {
     if (!current || current.readOnly) return
     $('codeEditor').value = current.fixed
-    setStatus('info', 'Reference fix loaded. Read it, then Save fix.')
+    setStatus('info', 'Reference fix loaded. Read it, then hit Build it.')
   }
 
   function resetVuln () {

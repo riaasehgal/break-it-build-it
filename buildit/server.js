@@ -165,7 +165,7 @@ function sendJson (res, status, obj) {
 
 function serveFile (res, filePath) {
   const ext = path.extname(filePath).toLowerCase()
-  const mime = { '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript' }
+  const mime = { '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript', '.png': 'image/png' }
   try {
     const data = fs.readFileSync(filePath)
     res.writeHead(200, { 'Content-Type': mime[ext] || 'application/octet-stream' })
