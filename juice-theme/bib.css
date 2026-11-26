@@ -161,6 +161,14 @@ body[class] .mat-drawer-container {
   font: 500 12px/1 var(--bib-mono); letter-spacing: .02em; white-space: nowrap; overflow: hidden;
 }
 .bib-bar-tag { color: var(--bib-green); font-weight: 700; }
+.bib-bar { padding-left: 230px; padding-right: 230px; }
+.bib-orgs { display: flex; align-items: center; gap: 8px; color: var(--bib-muted); }
+.bib-orgs img { display: block; width: auto; height: 18px; }
+.bib-orgs .bib-org-iss { height: 21px; }
+.bib-bar .bib-orgs { position: absolute; left: 14px; top: 0; bottom: 0; }
+.bib-boot .bib-orgs { position: absolute; top: 28px; left: 32px; z-index: 1; gap: 14px; font: 600 16px var(--bib-mono); }
+.bib-boot .bib-orgs img { height: 32px; }
+.bib-boot .bib-orgs .bib-org-iss { height: 38px; }
 .bib-bar-msg { overflow: hidden; text-overflow: ellipsis; }
 .bib-pause {
   position: absolute; right: 8px; top: 4px; bottom: 4px; min-width: 34px; padding: 0 10px; border: 1px solid var(--bib-line); border-radius: 999px;
@@ -532,6 +540,7 @@ body[class] .cc-window .cc-btn:hover { transform: translateY(-2px); }
   100% { opacity: 0; clip-path: inset(0 0 100% 0); }
 }
 .bib-boot { background: #05060f; pointer-events: auto; cursor: pointer; }
+body.bib-booting .cdk-overlay-popover { visibility: hidden !important; }
 .bib-boot.out { animation: bib-out .6s var(--bib-ease) forwards; }
 @keyframes bib-out { to { clip-path: inset(0 0 100% 0); } }
 .bib-term { width: min(780px, 88vw); background: var(--bib-term); border: 1.5px solid #3f7d43; border-radius: 12px; overflow: hidden; box-shadow: 0 0 0 4px rgba(63,125,67,.14); }
@@ -556,6 +565,8 @@ body.bib-paused .bib-hero::before, body.bib-paused .bib-eyebrow i, body.bib-paus
 
 /* ── Widths ───────────────────────────────────────────────────────────── */
 @media (max-width: 960px) {
+  .bib-bar { padding-left: 96px; padding-right: 52px; }
+  .bib-bar .bib-org-gdg { width: 30px; object-fit: cover; object-position: left; }
   .bib-hero { grid-template-columns: minmax(0, 1fr); min-height: 0; }
   app-basket .mat-mdc-card > .mdc-card { grid-template-columns: minmax(0, 1fr); }
   app-basket .mat-mdc-table, app-basket #price, app-basket #checkoutButton, app-basket .hint { grid-column: 1; grid-row: auto; }
@@ -576,8 +587,11 @@ body.bib-paused .bib-hero::before, body.bib-paused .bib-eyebrow i, body.bib-paus
   app-basket .mat-column-remove { grid-area: remove; justify-content: flex-end !important; }
 }
 @media (max-width: 600px) {
-  .bib-bar { justify-content: flex-start; padding-left: 14px; }
+  .bib-bar { justify-content: flex-start; padding-left: 96px; padding-right: 52px; }
   .bib-bar-tag { display: none; }
+  .bib-boot .bib-orgs { top: 18px; left: 18px; }
+  .bib-boot .bib-orgs img { height: 24px; }
+  .bib-boot .bib-orgs .bib-org-iss { height: 28px; }
   .bib-h1 .bib-kinetic { white-space: normal; }
   .bib-lede { font-size: 15px; }
   .bib-pick-name { font-size: 12px; }

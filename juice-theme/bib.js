@@ -60,11 +60,15 @@
     }
   }
 
+  // The hosts' logos, as on every slide of the deck (served beside this file).
+  const ORGS = '<span class="bib-orgs"><img src="assets/bib/gdg-sheridan.png" alt="Google Developer Group, Sheridan College" class="bib-org-gdg">' +
+    '<span aria-hidden="true">×</span><img src="assets/bib/issessions.png" alt="ISSessions" class="bib-org-iss"></span>'
+
   // ── Announcement bar, with the one pause control for all theme motion ───
   const LINES = ['Free shipping on negative orders', '100% organic SQL', 'Now accepting alg: none', 'Disallow: /ftp (please don\'t look)',
     'Cold-pressed since 2014', 'Fri Nov 27 · Room S235 · ISS × GDG on Campus Sheridan']
   const bar = el('div', 'bib-bar',
-    '<span class="bib-bar-tag" aria-hidden="true">&gt; break_it</span><span class="bib-bar-msg" aria-hidden="true"></span>' +
+    ORGS + '<span class="bib-bar-tag" aria-hidden="true">&gt; break_it</span><span class="bib-bar-msg" aria-hidden="true"></span>' +
     '<button type="button" class="bib-pause" aria-pressed="false" aria-label="Pause theme animations">❚❚</button>')
   body.appendChild(bar)
   const barRun = cycler(bar.querySelector('.bib-bar-msg'), LINES, 3600)
@@ -186,13 +190,15 @@
   function boot () {
     if (reduced || sessionStorage.getItem('bib-booted')) return
     sessionStorage.setItem('bib-booted', '1')
-    const b = el('div', 'bib-boot', '<div class="bib-term"><div class="bib-term-bar"><i></i><i></i><i></i><span>zsh — juice_shop</span></div><div class="bib-boot-line"></div></div>')
+    const b = el('div', 'bib-boot', ORGS + '<div class="bib-term"><div class="bib-term-bar"><i></i><i></i><i></i><span>zsh — juice_shop</span></div><div class="bib-boot-line"></div></div>')
     b.setAttribute('aria-hidden', 'true')
     body.appendChild(b)
+    // Angular dialogs sit in the browser's top layer, above any z-index; hide them until boot ends.
+    body.classList.add('bib-booting')
     const line = b.querySelector('.bib-boot-line'), cmd = "> ./juice_shop --edition fall26"
     let i = 0, done = false
     const typing = setInterval(() => { line.textContent = cmd.slice(0, ++i); if (i >= cmd.length) clearInterval(typing) }, 22)
-    const finish = () => { if (done) return; done = true; clearInterval(typing); b.classList.add('out'); setTimeout(() => b.remove(), 600) }
+    const finish = () => { if (done) return; done = true; clearInterval(typing); body.classList.remove('bib-booting'); b.classList.add('out'); setTimeout(() => b.remove(), 600) }
     setTimeout(() => { if (done) return; line.classList.add('big'); line.innerHTML = '<span class="bib-glitch" data-text="&gt; break_it">&gt; break_it</span><i class="bib-block"></i>' }, 950)
     setTimeout(finish, 2000)
     b.addEventListener('click', finish)

@@ -40,7 +40,7 @@ if (!html.includes('</body>')) {
   process.exit(1)
 }
 fs.mkdirSync(DEST, { recursive: true })
-for (const f of ['bib.css', 'bib.js']) fs.copyFileSync(path.join(__dirname, f), path.join(DEST, f))
+for (const f of ['bib.css', 'bib.js', 'gdg-sheridan.png', 'issessions.png']) fs.copyFileSync(path.join(__dirname, f), path.join(DEST, f))
 
 // Last in the body so it wins ties with Angular's component styles; ?v busts the cache on re-apply.
 const v = Date.now()
