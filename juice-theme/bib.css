@@ -1,0 +1,590 @@
+/* Break It / Build It — theme layer for OWASP Juice Shop v20.1.1.
+   Installed into frontend/dist by juice-theme/apply.js. Restyles through Material 3
+   tokens where possible, plain overrides where Juice Shop hard-codes a look.
+   Base: a modern dark storefront (grey product wells, name + price under the photo,
+   a line-item cart with a summary card). Accent: the deck's glitch, mono and terminals. */
+
+:root {
+  --bib-sans: 'Geist', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --bib-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --bib-bg: #0a0a0c;
+  --bib-surface: #121317;
+  --bib-surface-2: #1a1b20;
+  --bib-line: #24262d;
+  --bib-line-2: #34363f;
+  --bib-text: #f4f4f5;
+  --bib-muted: #a1a1aa;
+  --bib-well: #ececee;
+  --bib-term: #0e1117;
+  --bib-term-bar: #1a1e26;
+  --bib-red: #ff4d6d;
+  --bib-green: #4ade80;
+  --bib-rgb-r: #ff2a55;
+  --bib-rgb-c: #2ef2ff;
+  --bib-ease: cubic-bezier(.2,.8,.2,1);
+  --bib-bar: 34px;
+}
+
+/* ── Tokens ───────────────────────────────────────────────────────────── */
+body[class] {
+  --mat-sys-primary: #4ade80;
+  --mat-sys-on-primary: #052e12;
+  --mat-sys-primary-container: #14532d;
+  --mat-sys-on-primary-container: #dcfce7;
+  --mat-sys-secondary: #d4d4d8;
+  --mat-sys-secondary-container: #1a1b20;
+  --mat-sys-on-secondary-container: #f4f4f5;
+  --mat-sys-tertiary: #4ade80;
+  --mat-sys-on-tertiary: #052e12;
+  --mat-sys-tertiary-container: #14532d;
+  --mat-sys-on-tertiary-container: #dcfce7;
+  --mat-sys-error: #ff4d6d;
+  --mat-sys-on-error: #19020a;
+  --mat-sys-background: #0a0a0c;
+  --mat-sys-surface: #121317;
+  --mat-sys-surface-dim: #0a0a0c;
+  --mat-sys-surface-bright: #24262d;
+  --mat-sys-surface-container-lowest: #070708;
+  --mat-sys-surface-container-low: #0e0f12;
+  --mat-sys-surface-container: #121317;
+  --mat-sys-surface-container-high: #1a1b20;
+  --mat-sys-surface-container-highest: #202128;
+  --mat-sys-on-surface: #f4f4f5;
+  --mat-sys-on-background: #f4f4f5;
+  --mat-sys-on-surface-variant: #a1a1aa;
+  --mat-sys-outline: #4a4c55;
+  --mat-sys-outline-variant: #24262d;
+  --mat-sys-inverse-surface: #f4f4f5;
+  --mat-sys-inverse-on-surface: #0a0a0c;
+  --mat-sys-inverse-primary: #15803d;
+  --mat-sys-corner-extra-small: 6px;
+  --mat-sys-corner-small: 10px;
+  --mat-sys-corner-medium: 14px;
+  --mat-sys-corner-large: 18px;
+  --mat-sys-corner-extra-large: 24px;
+
+  --mat-sys-body-large-font: var(--bib-sans);
+  --mat-sys-body-medium-font: var(--bib-sans);
+  --mat-sys-body-small-font: var(--bib-sans);
+  --mat-sys-display-large-font: var(--bib-sans);
+  --mat-sys-display-medium-font: var(--bib-sans);
+  --mat-sys-display-small-font: var(--bib-sans);
+  --mat-sys-headline-large-font: var(--bib-sans);
+  --mat-sys-headline-medium-font: var(--bib-sans);
+  --mat-sys-headline-small-font: var(--bib-sans);
+  --mat-sys-label-large-font: var(--bib-sans);
+  --mat-sys-label-medium-font: var(--bib-sans);
+  --mat-sys-label-small-font: var(--bib-sans);
+  --mat-sys-title-large-font: var(--bib-sans);
+  --mat-sys-title-medium-font: var(--bib-sans);
+  --mat-sys-title-small-font: var(--bib-sans);
+
+  --theme-primary: #f4f4f5;
+  --theme-accent: #4ade80;
+  --theme-warn: #ff4d6d;
+  --theme-text: #f4f4f5;
+  --theme-text-dark: #a1a1aa;
+  --theme-text-darker: #d4d4d8;
+  --theme-background: #121317;
+  --theme-background-dark: #0a0a0c;
+  --theme-background-darker: #0e0f12;
+  --theme-background-darkest: #070708;
+  --theme-background-light: #1a1b20;
+  --theme-background-lighter: #202128;
+  --theme-thumbnail-border: 0;
+
+  --mat-sidenav-content-background-color: transparent;
+  --mat-sidenav-container-background-color: #0e0f12;
+  --mat-table-background-color: transparent;
+  --mat-table-row-item-outline-color: var(--bib-line);
+  --mat-paginator-container-background-color: transparent;
+  --mat-paginator-container-text-color: var(--bib-muted);
+  --mat-snack-bar-container-color: #f4f4f5;
+  --mat-snack-bar-supporting-text-color: #0a0a0c;
+  --mat-snack-bar-button-color: #15803d;
+  --mat-snack-bar-container-shape: 14px;
+  --mat-tooltip-container-color: #f4f4f5;
+  --mat-tooltip-supporting-text-color: #0a0a0c;
+  --mat-dialog-container-color: var(--bib-surface);
+  --mat-dialog-container-shape: 24px;
+  --mat-badge-background-color: var(--bib-red);
+  --mat-badge-text-color: #fff;
+  --mat-expansion-container-background-color: transparent;
+
+  font-family: var(--bib-sans);
+  color: var(--bib-text);
+  -webkit-font-smoothing: antialiased;
+  /* The deck's dusty black: faint grain over near-black. */
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 -.62'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    var(--bib-bg) !important;
+}
+body[class] ::selection { background: var(--bib-green); color: #052e12; }
+body[class] :focus-visible { outline: 2px solid var(--bib-green); outline-offset: 2px; }
+
+/* Room for the announcement bar. */
+body[class] .mat-drawer-container {
+  background: transparent !important;
+  margin-top: var(--bib-bar);
+  height: calc(100vh - var(--bib-bar)) !important;
+}
+
+/* ── Glitch (the deck's "> break_it") ─────────────────────────────────── */
+.bib-glitch { position: relative; display: inline-block; text-shadow: -.035em .02em 0 var(--bib-rgb-r), .035em -.012em 0 var(--bib-rgb-c); }
+.bib-glitch::before, .bib-glitch::after {
+  content: attr(data-text); position: absolute; inset: 0; pointer-events: none;
+  background: var(--under, transparent); color: inherit; clip-path: inset(100% 0 0 0);
+}
+.bib-glitch::before { animation: bib-slice-a 3.4s steps(1) infinite; text-shadow: -.06em 0 0 var(--bib-rgb-r); }
+.bib-glitch::after  { animation: bib-slice-b 3.4s steps(1) infinite; text-shadow: .06em 0 0 var(--bib-rgb-c); }
+@keyframes bib-slice-a {
+  0%, 86%, 100% { clip-path: inset(100% 0 0 0); transform: none; }
+  87% { clip-path: inset(12% 0 64% 0); transform: translate(-.05em, 0); }
+  89% { clip-path: inset(58% 0 18% 0); transform: translate(.04em, 0); }
+  91% { clip-path: inset(30% 0 46% 0); transform: translate(-.02em, 0); }
+  93% { clip-path: inset(100% 0 0 0); }
+}
+@keyframes bib-slice-b {
+  0%, 88%, 100% { clip-path: inset(100% 0 0 0); transform: none; }
+  89% { clip-path: inset(70% 0 6% 0); transform: translate(.05em, 0); }
+  91% { clip-path: inset(8% 0 78% 0); transform: translate(-.04em, 0); }
+  94% { clip-path: inset(100% 0 0 0); }
+}
+@keyframes bib-blink { 50% { opacity: 0; } }
+.bib-split { text-shadow: -.03em .015em 0 var(--bib-rgb-r), .03em -.01em 0 var(--bib-rgb-c); }
+
+/* ── Announcement bar ─────────────────────────────────────────────────── */
+.bib-bar {
+  position: fixed; z-index: 1001; left: 0; right: 0; top: 0; height: var(--bib-bar);
+  display: flex; align-items: center; justify-content: center; gap: 14px; padding: 0 52px;
+  background: #000; border-bottom: 1px solid var(--bib-line); color: #d4d4d8;
+  font: 500 12px/1 var(--bib-mono); letter-spacing: .02em; white-space: nowrap; overflow: hidden;
+}
+.bib-bar-tag { color: var(--bib-green); font-weight: 700; }
+.bib-bar-msg { overflow: hidden; text-overflow: ellipsis; }
+.bib-pause {
+  position: absolute; right: 8px; top: 4px; bottom: 4px; min-width: 34px; padding: 0 10px; border: 1px solid var(--bib-line); border-radius: 999px;
+  background: transparent; color: #d4d4d8; font: 700 11px var(--bib-mono); cursor: pointer; transition: background-color .15s, color .15s;
+}
+.bib-pause:hover { background: #f4f4f5; color: #0a0a0c; }
+
+/* ── Toolbar ──────────────────────────────────────────────────────────── */
+app-navbar .mat-toolbar {
+  background: rgba(10,10,12,.78) !important; color: var(--bib-text) !important; box-shadow: none !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4);
+  border-bottom: 1px solid var(--bib-line); font-family: var(--bib-sans) !important;
+}
+app-navbar .app-name { font: 800 19px/1 var(--bib-mono) !important; letter-spacing: -.04em; color: #fff; }
+app-navbar .nav-home-button:hover .app-name { text-shadow: -.04em .02em 0 var(--bib-rgb-r), .04em -.012em 0 var(--bib-rgb-c); }
+app-navbar .logo { filter: drop-shadow(1.5px 0 0 var(--bib-rgb-r)) drop-shadow(-1.5px 0 0 var(--bib-rgb-c)); }
+app-navbar .navbar-actions .mdc-button {
+  border-radius: 999px !important; margin-left: 6px !important; color: var(--bib-text) !important; font-weight: 500 !important;
+  transition: transform .15s var(--bib-ease), background-color .15s, color .15s;
+}
+app-navbar .navbar-actions .mdc-button:hover { background: var(--bib-surface-2) !important; }
+app-navbar .navbar-actions .mdc-button:active { transform: scale(.97); }
+/* The basket is the one filled pill, like a modern store's cart button. */
+app-navbar .navbar-actions .nav-button:has(.fa-layers-counter) { background: #f4f4f5 !important; color: #0a0a0c !important; padding: 0 14px !important; }
+app-navbar .navbar-actions .nav-button:has(.fa-layers-counter):hover { background: #fff !important; transform: translateY(-2px); }
+app-navbar .navbar-actions .nav-button:has(.fa-layers-counter) .mat-icon { color: #0a0a0c !important; }
+app-navbar .nav-button .fa-layers-counter {
+  position: static !important; transform: none !important; display: inline-grid !important; place-items: center;
+  font: 700 11px/1 var(--bib-mono) !important; min-width: 20px; height: 20px; padding: 0 6px !important; margin-left: 8px;
+  border-radius: 999px; background: #0a0a0c !important; color: #fff !important; vertical-align: middle;
+}
+app-navbar .mat-mdc-icon-button { color: var(--bib-text) !important; }
+app-mat-search-bar .search-container { background: var(--bib-surface-2) !important; border: 1px solid var(--bib-line); border-radius: 999px !important; color: var(--bib-text); }
+app-mat-search-bar input { font-family: var(--bib-sans) !important; color: var(--bib-text) !important; }
+
+/* ── Product grid ─────────────────────────────────────────────────────── */
+app-search-result .container { width: auto !important; max-width: 1240px; margin: 0 auto !important; padding: 8px clamp(14px, 2.4vw, 32px) 40px !important; box-sizing: border-box; }
+app-search-result .heading {
+  background: transparent !important; box-shadow: none !important; border-radius: 0 !important;
+  justify-content: flex-start !important; align-items: baseline; flex-wrap: wrap; gap: 0 .35em;
+  padding: 18px 2px 8px !important; margin: 0 0 22px !important; border-bottom: 1px solid var(--bib-line);
+  font: 600 clamp(26px, 2.6vw, 36px)/1.1 var(--bib-sans) !important; letter-spacing: -.03em; color: #fff;
+}
+app-search-result .heading > div:first-child::before { content: '> '; font: 800 .8em var(--bib-mono); color: var(--bib-green); }
+app-search-result .products-grid { grid-template-columns: repeat(auto-fill, minmax(212px, 1fr)) !important; gap: 34px 20px !important; }
+
+app-product .mat-mdc-card {
+  background: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+  color: var(--bib-text) !important; overflow: visible !important; height: 100%;
+}
+/* container-type lets the quick-add button find the photo's bottom edge (the photo is 100cqw tall). */
+app-product article.product { position: relative; display: flex; flex-direction: column; justify-content: flex-start !important; height: 100%; container-type: inline-size; }
+app-product .image-container {
+  position: relative; display: grid !important; place-items: center; aspect-ratio: 1 !important; height: auto !important;
+  background: var(--bib-well) !important; border: 0 !important; border-radius: 18px; overflow: hidden; cursor: pointer;
+}
+app-product .image-container::before { display: none !important; }
+app-product .image-container img {
+  width: 100% !important; height: 100% !important; max-height: none !important; object-fit: cover; padding: 0; margin: 0 !important;
+  border: 0 !important; border-radius: 0 !important; background: transparent !important;
+  transition: transform .5s var(--bib-ease);
+}
+app-product .mat-mdc-card:hover .image-container img { transform: scale(1.04); }
+app-product .info-box { background: transparent !important; padding: 0 !important; }
+app-product .info-box .name {
+  font: 500 15px/1.35 var(--bib-sans) !important; color: var(--bib-text) !important; text-align: left !important;
+  padding: 14px 2px 0 !important; margin: 0 !important; transition: text-shadow .15s;
+}
+app-product .mat-mdc-card:hover .name { text-shadow: -1px 0 0 var(--bib-rgb-r), 1px 0 0 var(--bib-rgb-c); }
+app-product .footer {
+  display: block !important; padding: 4px 2px 0 !important; background: transparent !important;
+}
+app-product .price {
+  font: 600 15px/1.3 var(--bib-sans) !important; font-variant-numeric: tabular-nums; letter-spacing: -.01em;
+  color: #fff !important; text-align: left !important; margin: 0 !important;
+}
+/* Quick add: a round button on the photo's bottom-right corner; screen readers still get its aria-label. */
+body[class] app-product .btn-basket.mat-mdc-raised-button {
+  position: absolute !important; z-index: 2; top: calc(100cqw - 56px); right: 12px; left: auto !important;
+  display: inline-grid !important; place-items: center; width: 44px; min-width: 44px !important; height: 44px; padding: 0 !important; margin: 0 !important;
+  border-radius: 999px !important; background: #fff !important; color: #0a0a0c !important;
+  box-shadow: 0 6px 16px -4px rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.06) !important;
+  transition: transform .15s var(--bib-ease), background-color .15s !important;
+}
+body[class] app-product .btn-basket .mdc-button__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+/* Juice Shop pins the icon 1.3rem from the left; put it back in the middle. */
+body[class] app-product .btn-basket .mat-icon {
+  position: static !important; left: auto !important; top: auto !important; margin: 0 !important;
+  color: #0a0a0c !important; font-size: 22px; width: 22px; height: 22px; line-height: 22px;
+}
+body[class] app-product .btn-basket::before { display: none; } /* Juice Shop's accent block behind the icon */
+body[class] app-product .btn-basket:hover { transform: translateY(-2px); background: var(--bib-green) !important; }
+body[class] app-product .btn-basket:active { transform: scale(.94); }
+app-product .ribbon {
+  position: absolute !important; z-index: 2; top: 12px !important; left: 12px !important; right: auto !important; transform: none !important;
+  width: auto !important; height: auto !important; padding: 0 !important; margin: 0 !important; overflow: visible !important; background: none !important;
+}
+app-product .ribbon * {
+  position: static !important; transform: none !important; display: inline-block !important; width: auto !important;
+  padding: 6px 10px !important; border-radius: 999px !important; background: var(--bib-red) !important; color: #fff !important;
+  font: 700 11px/1 var(--bib-mono) !important; letter-spacing: .04em; box-shadow: none !important; text-shadow: none !important;
+}
+app-search-result .mat-mdc-paginator { background: transparent !important; color: var(--bib-muted) !important; border-top: 1px solid var(--bib-line); margin-top: 30px; box-shadow: none !important; }
+
+/* ── Cards and dialogs (modern panels) ────────────────────────────────── */
+body[class] .mat-mdc-card.mat-elevation-z6,
+body[class] .mat-mdc-dialog-surface {
+  background: var(--bib-surface) !important; color: var(--bib-text) !important;
+  border: 1px solid var(--bib-line) !important; border-radius: 24px !important;
+  box-shadow: 0 40px 90px -40px rgba(0,0,0,.9) !important;
+}
+body[class] .mat-mdc-card.mat-elevation-z6 h1,
+body[class] .mat-mdc-dialog-surface h1 {
+  font: 600 clamp(26px, 2.6vw, 36px)/1.1 var(--bib-sans) !important; letter-spacing: -.03em !important; color: #fff !important;
+}
+body[class] .mat-mdc-card.mat-elevation-z6 h1 small { display: block; margin-top: 6px; font: 400 14px var(--bib-sans); letter-spacing: 0; color: var(--bib-muted); }
+body[class] .mat-mdc-dialog-surface a { color: var(--bib-green) !important; }
+body[class] .mat-mdc-dialog-surface .text-justify { text-align: left !important; }
+body[class] a:focus-visible { outline: none; background: #fff; color: #0a0a0c !important; text-decoration: none; }
+
+/* Product quick view: photo in a well, details beside it. */
+.cdk-overlay-pane:has(app-product-details) { width: min(880px, 94vw) !important; max-width: 94vw !important; }
+app-product-details h1 { font-size: clamp(24px, 2.4vw, 32px) !important; }
+app-product-details .details-row { display: grid !important; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 28px; align-items: center; }
+app-product-details .no-shrink {
+  background: var(--bib-well); border-radius: 20px; aspect-ratio: 1; display: grid; place-items: center; overflow: hidden;
+}
+app-product-details .no-shrink img { width: 100% !important; height: 100% !important; max-width: none !important; object-fit: cover; border: 0 !important; border-radius: 0 !important; background: transparent !important; }
+app-product-details h1 { margin: 0 0 10px !important; }
+app-product-details .item-price { font: 600 24px/1.2 var(--bib-mono) !important; color: #fff; margin: 0; }
+app-product-details .detail-divider { border-top-color: var(--bib-line) !important; margin: 20px 0 !important; }
+app-product-details .mat-expansion-panel { border: 1px solid var(--bib-line); border-radius: 16px !important; }
+
+/* Terminal windows where you break in: login, sign-up, password reset, the welcome note. */
+app-login         { --bib-term-title: 'login.sh'; }
+app-register      { --bib-term-title: 'register.sh'; }
+app-forgot-password { --bib-term-title: 'reset_password.sh'; }
+.mat-mdc-dialog-surface:has(app-welcome-banner) { --bib-term-title: 'welcome.txt'; }
+body[class] :is(app-login, app-register, app-forgot-password) .mat-mdc-card.mat-elevation-z6,
+body[class] .mat-mdc-dialog-surface:has(app-welcome-banner) {
+  background: var(--bib-term) !important; border: 1.5px solid #3f7d43 !important; border-radius: 12px !important; overflow: hidden;
+  box-shadow: 0 0 0 4px rgba(63,125,67,.16), 0 40px 90px -30px rgba(0,0,0,.9) !important;
+}
+body[class] :is(app-login, app-register, app-forgot-password) .mat-mdc-card.mat-elevation-z6::before,
+body[class] .mat-mdc-dialog-surface:has(app-welcome-banner)::before {
+  content: var(--bib-term-title); display: block; flex: none;
+  height: 36px; padding: 0 12px 0 74px; font: 500 12px/36px var(--bib-mono); color: #9aa3b2;
+  background:
+    radial-gradient(circle at 18px 18px, #ff5f57 5px, transparent 5.5px),
+    radial-gradient(circle at 36px 18px, #febc2e 5px, transparent 5.5px),
+    radial-gradient(circle at 54px 18px, #28c840 5px, transparent 5.5px),
+    var(--bib-term-bar);
+}
+body[class] :is(app-login, app-register, app-forgot-password) .mat-mdc-card.mat-elevation-z6 h1,
+body[class] .mat-mdc-dialog-surface:has(app-welcome-banner) h1 {
+  font: 800 clamp(30px, 3.2vw, 44px)/1.02 var(--bib-mono) !important; letter-spacing: -.05em !important;
+}
+body[class] :is(app-login, app-register, app-forgot-password) .mat-mdc-card.mat-elevation-z6 h1::before { content: '> '; color: var(--bib-green); }
+body[class] :is(app-login, app-register, app-forgot-password) :is(input, label, .mat-mdc-floating-label) { font-family: var(--bib-mono) !important; }
+app-login a, app-register a { color: var(--bib-green) !important; }
+#loginButtonGoogle { background: #f4f4f5 !important; color: #0a0a0c !important; white-space: nowrap; width: auto !important; min-width: 60%; margin-left: auto !important; margin-right: auto !important; display: flex !important; padding: 0 22px !important; }
+
+/* ── Basket: line items left, order summary right ─────────────────────── */
+body[class] app-basket .mat-mdc-card.mat-elevation-z6 {
+  background: transparent !important; border: 0 !important; box-shadow: none !important; border-radius: 0 !important;
+  max-width: 1240px; margin: 0 auto !important; padding: 0 clamp(14px, 2.4vw, 32px) !important; box-sizing: border-box;
+}
+app-basket .mat-mdc-card > .mdc-card {
+  display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(280px, 360px); column-gap: 36px; align-items: start;
+  background: transparent !important; border: 0 !important; box-shadow: none !important; padding: 8px 0 40px !important;
+}
+app-basket app-purchase-basket { display: contents; }
+app-basket h1 { grid-column: 1 / -1; margin: 8px 0 22px !important; }
+app-basket h1::before { content: '>'; font: 800 .8em var(--bib-mono); color: var(--bib-green); margin-right: .3em; }
+app-basket .mat-mdc-table { grid-column: 1; grid-row: 2 / span 4; border-top: 1px solid var(--bib-line); }
+app-basket .mat-mdc-header-row { display: none !important; }
+app-basket .mat-mdc-row { min-height: 116px; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--bib-line); transition: background-color .15s; }
+app-basket .mat-mdc-cell { border: 0 !important; padding: 0 !important; font: 500 15px var(--bib-sans) !important; color: var(--bib-text) !important; }
+app-basket .mat-column-image { flex: 0 0 88px !important; height: 88px; border-radius: 14px; overflow: hidden; background: var(--bib-well); }
+app-basket .mat-column-image img { width: 100% !important; height: 100% !important; max-width: none !important; object-fit: cover; border: 0 !important; border-radius: 0 !important; background: transparent !important; }
+app-basket .mat-column-product { flex: 1 1 auto !important; }
+app-basket .mat-column-quantity {
+  flex: 0 0 auto !important; display: inline-flex !important; align-items: center; gap: 2px; padding: 2px 4px !important;
+  align-self: center !important; min-height: 0 !important; height: 40px; box-sizing: border-box;
+  border: 1px solid var(--bib-line-2) !important; border-radius: 999px;
+}
+app-basket .mat-column-quantity span { min-width: 22px; text-align: center; font: 600 14px var(--bib-mono) !important; }
+app-basket .mat-column-quantity button { width: 32px !important; height: 32px !important; padding: 7px !important; color: var(--bib-muted) !important; }
+app-basket .mat-column-quantity button:hover { color: #fff !important; }
+app-basket .mat-column-price { flex: 0 0 96px !important; justify-content: flex-end; font: 500 15px var(--bib-mono) !important; }
+app-basket .mat-column-remove { flex: 0 0 44px !important; justify-content: flex-end; }
+app-basket .mat-column-remove button { color: var(--bib-muted) !important; transition: color .15s; }
+app-basket .mat-column-remove button:hover { color: var(--bib-red) !important; }
+/* The summary card sits behind the total, checkout button and hint. */
+app-basket .mat-mdc-card > .mdc-card::before {
+  content: ''; grid-column: 2; grid-row: 2 / span 3; align-self: stretch;
+  background: var(--bib-surface); border: 1px solid var(--bib-line); border-radius: 22px;
+}
+app-basket #price {
+  grid-column: 2; grid-row: 2; position: relative; z-index: 1; padding: 22px 24px 8px; margin: 0 !important; width: auto !important; text-align: left !important;
+  font: 600 22px/1.25 var(--bib-sans) !important; letter-spacing: -.02em; color: #fff;
+}
+app-basket #price::before {
+  content: 'Order summary'; display: block; margin-bottom: 14px;
+  font: 500 11px var(--bib-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--bib-muted);
+}
+app-basket #checkoutButton {
+  grid-column: 2; grid-row: 3; position: relative; z-index: 1; margin: 10px 24px 6px !important; width: auto !important; height: 52px;
+  border-radius: 999px !important; font: 600 15px var(--bib-sans) !important;
+}
+app-basket .hint { grid-column: 2; grid-row: 4; position: relative; z-index: 1; display: block !important; text-align: left !important; padding: 6px 24px 22px; margin: 0 !important; font: 400 13px/1.45 var(--bib-sans); color: var(--bib-muted); }
+app-basket .hint::after { content: 'Secure checkout* · *not a promise'; display: block; margin-top: 12px; font: 500 11px var(--bib-mono); color: #6b6f7a; }
+
+/* Juice Shop's styles.css has a blanket `.mat-primary { background-color: … }`; repaint it. */
+body[class] .mat-mdc-raised-button.mat-primary,
+body[class] .mat-mdc-unelevated-button.mat-primary,
+body[class] app-basket #checkoutButton:not(:disabled) {
+  --mdc-filled-button-container-color: #f4f4f5;
+  background-color: #f4f4f5 !important; color: #0a0a0c !important;
+}
+body[class] :is(app-login, app-register, app-forgot-password) .mat-mdc-raised-button.mat-primary:not(:disabled) { background-color: var(--bib-green) !important; color: #052e12 !important; }
+body[class] .mat-mdc-raised-button:not(.mat-primary):not(:disabled) { background-color: var(--bib-surface-2) !important; color: var(--bib-text) !important; }
+body[class] .mat-mdc-raised-button:disabled,
+body[class] .mat-mdc-raised-button.mat-mdc-button-disabled {
+  background-color: rgba(255,255,255,.08) !important; color: rgba(255,255,255,.4) !important;
+}
+body[class] .mat-mdc-form-field.mat-primary, body[class] .mat-mdc-checkbox.mat-primary { background-color: transparent !important; }
+body[class] .mat-mdc-raised-button, body[class] .mat-mdc-unelevated-button {
+  border-radius: 999px !important; font-weight: 600 !important;
+  --mat-button-protected-state-layer-color: currentColor; --mat-button-filled-state-layer-color: currentColor; /* no green tint on white buttons */
+}
+
+/* Buttons step and press, everywhere. */
+body[class] .mat-mdc-raised-button:not(:disabled),
+body[class] .mat-mdc-unelevated-button:not(:disabled) {
+  box-shadow: none !important; transition: transform .15s var(--bib-ease), background-color .15s !important;
+}
+body[class] .mat-mdc-raised-button:not(:disabled):hover,
+body[class] .mat-mdc-unelevated-button:not(:disabled):hover { transform: translateY(-2px); }
+body[class] .mat-mdc-raised-button:not(:disabled):active,
+body[class] .mat-mdc-unelevated-button:not(:disabled):active { transform: scale(.97); }
+
+/* ── Hack notifications ───────────────────────────────────────────────── */
+body[class] app-challenge-solved-notification .mat-mdc-card.accent-notification {
+  background: #05060f !important; color: #e6e9ef !important;
+  border: 1.5px solid var(--bib-green) !important; border-radius: 14px !important;
+  box-shadow: 0 0 0 4px rgba(74,222,128,.15), 0 20px 60px -20px rgba(0,0,0,.8) !important;
+  font-family: var(--bib-mono) !important;
+}
+body[class] app-challenge-solved-notification .contents::before {
+  content: '> break_it ✓'; display: inline-block; align-self: flex-start; margin: 0 12px 6px 0; padding: 3px 9px;
+  background: var(--bib-green); color: #052e12; font-weight: 800; border-radius: 4px;
+}
+
+/* ── Side menu ────────────────────────────────────────────────────────── */
+body[class] mat-sidenav.mat-drawer { background: #0e0f12 !important; border-right: 1px solid var(--bib-line) !important; color: var(--bib-text); }
+body[class] mat-sidenav .mat-toolbar { background: transparent !important; box-shadow: none !important; border-bottom: 1px solid var(--bib-line); }
+body[class] mat-sidenav .mat-toolbar h2 { font: 800 18px var(--bib-mono); letter-spacing: -.04em; }
+body[class] mat-sidenav .mat-mdc-list-item { border-radius: 12px !important; margin: 2px 8px; width: auto !important; transition: background-color .15s; }
+body[class] mat-sidenav .mat-mdc-list-item:hover { background: var(--bib-surface-2) !important; }
+body[class] mat-sidenav .side-subHeader { font: 500 11px var(--bib-mono) !important; letter-spacing: .14em; text-transform: uppercase; color: var(--bib-muted) !important; }
+
+/* ── Overlays ─────────────────────────────────────────────────────────── */
+body[class] .mat-mdc-snack-bar-container { font-family: var(--bib-sans) !important; }
+body[class] .mat-mdc-menu-panel { border: 1px solid var(--bib-line); border-radius: 16px !important; }
+body[class] .cc-window {
+  font-family: var(--bib-sans) !important; font-size: 14px !important;
+  background: var(--bib-surface) !important; color: var(--bib-text) !important; border: 1px solid var(--bib-line-2); border-radius: 20px !important;
+  box-shadow: 0 30px 80px -30px rgba(0,0,0,.9) !important; max-width: 360px; bottom: 18px !important;
+}
+body[class] .cc-window .cc-link { color: var(--bib-green) !important; opacity: 1; font-weight: 600; }
+body[class] .cc-window .cc-btn {
+  background: #f4f4f5 !important; color: #0a0a0c !important; border: 0 !important; border-radius: 999px !important;
+  font-family: var(--bib-sans) !important; font-weight: 600 !important; transition: transform .15s var(--bib-ease);
+}
+body[class] .cc-window .cc-btn:hover { transform: translateY(-2px); }
+
+/* ── Home: the drop hero and trending searches ────────────────────────── */
+.bib-home { max-width: 1240px; box-sizing: border-box; margin: 0 auto; padding: 18px clamp(14px, 2.4vw, 32px) 0; color: var(--bib-text); font-family: var(--bib-sans); }
+.bib-home[hidden] { display: none; }
+.bib-hero {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); align-items: center; gap: 24px;
+  padding: clamp(28px, 3.6vw, 56px);
+  border: 1px solid var(--bib-line); border-radius: 28px;
+  background:
+    radial-gradient(60% 80% at 85% 30%, rgba(46,242,255,.10), transparent 60%),
+    radial-gradient(50% 70% at 70% 90%, rgba(255,42,85,.12), transparent 60%),
+    #0d0e11;
+}
+/* CRT scanlines and a slow sweep, like the slides. */
+.bib-hero::after {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 4px);
+}
+.bib-hero::before {
+  content: ''; position: absolute; left: 0; right: 0; top: -30%; height: 30%; z-index: -1; pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(74,222,128,.06), transparent);
+  animation: bib-sweep 7s linear infinite;
+}
+@keyframes bib-sweep { to { transform: translateY(440%); } }
+.bib-eyebrow {
+  display: inline-flex; align-items: center; gap: 10px; margin: 0 0 22px; padding: 7px 12px 7px 10px;
+  border: 1px solid var(--bib-line-2); border-radius: 999px; font: 500 12px var(--bib-mono); color: #d4d4d8;
+}
+.bib-eyebrow b { color: var(--bib-green); font-weight: 700; }
+.bib-eyebrow i { width: 7px; height: 7px; border-radius: 50%; background: var(--bib-green); box-shadow: 0 0 0 4px rgba(74,222,128,.18); animation: bib-blink 1.6s steps(1) infinite; }
+.bib-h1 { margin: 0; font: 600 clamp(40px, 5.6vw, 84px)/.98 var(--bib-sans); letter-spacing: -.045em; color: #fff; }
+.bib-h1 .bib-kinetic { display: block; min-height: 1em; font: 800 .92em/1.02 var(--bib-mono); letter-spacing: -.06em; --under: #0d0e11; white-space: nowrap; }
+.bib-lede { max-width: 46ch; margin: 22px 0 30px; font-size: 17px; line-height: 1.55; color: #c4c4cc; }
+.bib-ctas { display: flex; flex-wrap: wrap; gap: 10px; }
+.bib-btn {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 22px; border-radius: 999px; border: 1px solid transparent;
+  font: 600 15px var(--bib-sans); text-decoration: none; cursor: pointer; transition: transform .15s var(--bib-ease), background-color .15s;
+}
+.bib-btn:hover { transform: translateY(-2px); }
+.bib-btn:active { transform: scale(.97); }
+.bib-btn.solid { background: #f4f4f5; color: #0a0a0c !important; }
+.bib-btn.solid:hover { background: #fff; }
+.bib-btn.ghost { background: transparent; color: var(--bib-text) !important; border-color: var(--bib-line-2); }
+.bib-btn.ghost:hover { background: var(--bib-surface-2); }
+.bib-meta { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 28px 0 0; padding: 0; list-style: none; font: 500 12px var(--bib-mono); color: var(--bib-muted); }
+.bib-meta b { color: #fff; font-weight: 700; }
+
+/* Three real products, stacked like stickers. */
+.bib-stack { position: relative; aspect-ratio: 1.1; width: 100%; max-width: 600px; justify-self: center; } /* height follows width, so the stack never clips */
+.bib-pick {
+  position: absolute; width: 50%; display: block; padding: 10px 10px 14px; border-radius: 22px; background: #f4f4f5; color: #0a0a0c !important;
+  text-decoration: none; box-shadow: 0 30px 60px -24px rgba(0,0,0,.75);
+  transform: translate(var(--x), var(--y)) rotate(var(--r)); transition: transform .35s var(--bib-ease), box-shadow .35s;
+}
+.bib-pick:nth-child(1) { --x: 4%;   --y: 16%; --r: -7deg; left: 0; top: 0; z-index: 1; }
+.bib-pick:nth-child(2) { --x: 50%;  --y: 0%;  --r: 5deg;  left: 0; top: 0; z-index: 2; }
+.bib-pick:nth-child(3) { --x: 32%;  --y: 36%; --r: -2deg; left: 0; top: 0; z-index: 3; }
+.bib-pick, .bib-pick * { text-decoration: none !important; }
+.bib-pick:hover { z-index: 4; transform: translate(var(--x), calc(var(--y) - 10px)) rotate(0deg) scale(1.03); box-shadow: 0 40px 70px -24px rgba(0,0,0,.85); }
+.bib-pick-img { display: grid; place-items: center; aspect-ratio: 1; border-radius: 16px; background: var(--bib-well); overflow: hidden; }
+.bib-pick-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s var(--bib-ease); }
+.bib-pick:hover .bib-pick-img img { transform: scale(1.03); }
+.bib-pick-name { display: block; margin: 12px 4px 2px; font: 600 14px/1.3 var(--bib-sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bib-pick-price { display: block; margin: 0 4px; font: 500 13px var(--bib-mono); color: #52525b; }
+.bib-pick-tag {
+  position: absolute; top: 18px; right: 18px; padding: 5px 9px; border-radius: 999px; background: #0a0a0c; color: #fff;
+  font: 700 11px/1 var(--bib-mono); letter-spacing: .02em;
+}
+
+.bib-trending { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 18px 2px 4px; }
+.bib-trending > span { margin-right: 6px; font: 500 12px var(--bib-mono); color: var(--bib-muted); }
+.bib-chip {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 14px; border: 1px solid var(--bib-line-2); border-radius: 999px;
+  color: var(--bib-text) !important; text-decoration: none; font: 500 14px var(--bib-sans); transition: transform .15s var(--bib-ease), background-color .15s, color .15s;
+}
+.bib-chip small { font: 500 11px var(--bib-mono); color: var(--bib-muted); }
+.bib-chip:hover { background: #f4f4f5; color: #0a0a0c !important; transform: translateY(-2px); }
+.bib-chip:hover small { color: #52525b; }
+
+/* ── Hack flash and boot screen ───────────────────────────────────────── */
+.bib-flash, .bib-boot { position: fixed; inset: 0; z-index: 2147482000; display: grid; place-content: center; justify-items: center; gap: 18px; pointer-events: none; }
+.bib-flash { visibility: hidden; background: #0b0306; color: #fff; }
+.bib-flash::after, .bib-boot::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(0,0,0,.35) 0 2px, transparent 2px 4px); pointer-events: none; }
+.bib-flash-word { font: 800 clamp(52px, 15vw, 240px)/1 var(--bib-mono); letter-spacing: -.05em; --under: #0b0306; }
+.bib-flash-sub { font: 700 clamp(14px, 1.6vw, 22px) var(--bib-mono); color: var(--bib-green); }
+.bib-flash.go { visibility: visible; animation: bib-flash 1.5s var(--bib-ease) both; }
+@keyframes bib-flash {
+  0% { clip-path: inset(50% 0 50% 0); opacity: 1; }
+  14% { clip-path: inset(0 0 0 0); }
+  20% { transform: translateX(-10px); } 24% { transform: translateX(8px); } 28% { transform: none; }
+  72% { opacity: 1; clip-path: inset(0 0 0 0); }
+  100% { opacity: 0; clip-path: inset(0 0 100% 0); }
+}
+.bib-boot { background: #05060f; pointer-events: auto; cursor: pointer; }
+.bib-boot.out { animation: bib-out .6s var(--bib-ease) forwards; }
+@keyframes bib-out { to { clip-path: inset(0 0 100% 0); } }
+.bib-term { width: min(780px, 88vw); background: var(--bib-term); border: 1.5px solid #3f7d43; border-radius: 12px; overflow: hidden; box-shadow: 0 0 0 4px rgba(63,125,67,.14); }
+.bib-term-bar { display: flex; align-items: center; gap: 7px; height: 36px; padding: 0 12px; background: var(--bib-term-bar); font: 500 12px var(--bib-mono); color: #9aa3b2; }
+.bib-term-bar i { width: 11px; height: 11px; border-radius: 50%; background: #ff5f57; }
+.bib-term-bar i:nth-child(2) { background: #febc2e; }
+.bib-term-bar i:nth-child(3) { background: #28c840; }
+.bib-term-bar span { margin-left: 8px; }
+.bib-boot-line { padding: 34px 32px; min-height: 140px; display: flex; align-items: center; font: 700 clamp(18px, 2.6vw, 30px)/1.2 var(--bib-mono); color: #e6e9ef; }
+.bib-boot-line.big { font-size: clamp(40px, 8vw, 96px); font-weight: 800; letter-spacing: -.04em; color: #fff; }
+.bib-block { display: inline-block; width: .5em; height: .82em; margin-left: .08em; background: currentColor; animation: bib-blink 1s steps(1) infinite; }
+
+/* ── Motion off: pause button and reduced motion ──────────────────────── */
+body.bib-paused .bib-glitch::before, body.bib-paused .bib-glitch::after,
+body.bib-paused .bib-hero::before, body.bib-paused .bib-eyebrow i, body.bib-paused .bib-block { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) {
+  .bib-glitch::before, .bib-glitch::after, .bib-hero::before { display: none; }
+  .bib-eyebrow i, .bib-block { animation: none !important; }
+  .bib-boot, .bib-flash { display: none !important; }
+  .bib-pick, .bib-pick-img img, app-product .image-container img, .bib-chip, .bib-btn { transition: none !important; }
+}
+
+/* ── Widths ───────────────────────────────────────────────────────────── */
+@media (max-width: 960px) {
+  .bib-hero { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+  app-basket .mat-mdc-card > .mdc-card { grid-template-columns: minmax(0, 1fr); }
+  app-basket .mat-mdc-table, app-basket #price, app-basket #checkoutButton, app-basket .hint { grid-column: 1; grid-row: auto; }
+  app-basket .mat-mdc-card > .mdc-card::before { display: none; }
+  app-basket #price { margin-top: 24px; padding: 22px 0 8px; border-top: 1px solid var(--bib-line); }
+  app-basket #checkoutButton { margin: 10px 0 6px !important; }
+  app-basket .hint { padding: 6px 0 0; }
+  /* Juice Shop stacks table cells full-width below 960px; lay each line item out as a small grid instead. */
+  app-basket .mat-mdc-row {
+    display: grid !important; grid-template-columns: 72px minmax(0, 1fr) auto; grid-template-areas: "img name remove" "img qty price";
+    gap: 6px 14px; align-items: center; min-height: 0; padding: 14px 0;
+  }
+  app-basket .mat-mdc-cell { width: auto !important; min-height: 0 !important; margin: 0 !important; justify-content: flex-start !important; text-align: left !important; }
+  app-basket .mat-column-image { grid-area: img; width: 72px !important; height: 72px !important; }
+  app-basket .mat-column-product { grid-area: name; }
+  app-basket .mat-column-quantity { grid-area: qty; justify-self: start; }
+  app-basket .mat-column-price { grid-area: price; justify-content: flex-end !important; }
+  app-basket .mat-column-remove { grid-area: remove; justify-content: flex-end !important; }
+}
+@media (max-width: 600px) {
+  .bib-bar { justify-content: flex-start; padding-left: 14px; }
+  .bib-bar-tag { display: none; }
+  .bib-h1 .bib-kinetic { white-space: normal; }
+  .bib-lede { font-size: 15px; }
+  .bib-pick-name { font-size: 12px; }
+  app-search-result .products-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 26px 12px !important; }
+  app-product-details .details-row { grid-template-columns: minmax(0, 1fr); }
+}
+@media (pointer: coarse) {
+  .bib-chip { min-height: 44px; }
+  .bib-pause { min-width: 44px; }
+}
