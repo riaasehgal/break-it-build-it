@@ -1,0 +1,16 @@
+# Scripts and configs must keep Unix line endings even on Windows checkouts (core.autocrlf=true):
+# bash cannot run CRLF scripts, and Git Bash is how these scripts run on Windows laptops.
+*.sh          text eol=lf
+*.yaml        text eol=lf
+*.yml         text eol=lf
+*.js          text eol=lf
+*.json        text eol=lf
+*.css         text eol=lf
+*.html        text eol=lf
+*.md          text eol=lf
+Dockerfile    text eol=lf
+.shellcheckrc text eol=lf
+.gitignore    text eol=lf
+.dockerignore text eol=lf
+.gitattributes text eol=lf
+*.png         binary

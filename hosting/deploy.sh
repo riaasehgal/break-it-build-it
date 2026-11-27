@@ -31,7 +31,7 @@ Options:
   --nodes N               Default: ceil(instances / 40)
   --juice-image IMG:TAG   Default: bkimminich/juice-shop:v20.1.1
   --with-buildit          Also host the Build-It site (sandbox mode) on its own public IP.
-  --buildit-image IMG:TAG Default: ghcr.io/erik-stief/bib-buildit:v1
+  --buildit-image IMG:TAG Default: ghcr.io/riaasehgal/bib-buildit:v1
   --budget AMOUNT         Budget alert in the billing account's currency; 0 = skip. Default: 50
   --stop-after PHASE      Stop after PHASE: preflight project billing apis quota node-sa cluster k8s-base helm warm
   --skip-verify           Skip the smoke test and isolation probes.
@@ -41,7 +41,7 @@ EOF
 
 PROJECT="" INSTANCES="" CREATE_PROJECT=0 ADOPT_PROJECT=0 BILLING_ACCOUNT="" REGION="us-central1" ZONE=""
 MACHINE_TYPE="e2-standard-8" NODES="" JUICE_IMAGE="bkimminich/juice-shop:v20.1.1" BUDGET=50 STOP_AFTER="" SKIP_VERIFY=0
-WITH_BUILDIT=0 BUILDIT_IMAGE="ghcr.io/erik-stief/bib-buildit:v1"
+WITH_BUILDIT=0 BUILDIT_IMAGE="ghcr.io/riaasehgal/bib-buildit:v1"
 CLUSTER="juice"
 
 while (( $# )); do
