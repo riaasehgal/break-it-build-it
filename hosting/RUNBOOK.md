@@ -25,9 +25,9 @@ Run the deploy, verify and teardown for a given project **from the same machine*
 - [ ] **Code is reachable.** Commit and push the `hosting/gke-deploy` branch, then make sure you can `git clone` it wherever you'll deploy from (laptop and/or Cloud Shell).
 - [ ] **Prerequisites pass** on each machine you might use: `bash hosting/check-prereqs.sh` must print `READY.`
 - [ ] **Cloud Shell rehearsal (untested so far).** If you plan to use Cloud Shell on the night, do the daytime cold rehearsal there.
-- [ ] **Themed image.** The deploy commands below use the club theme: `ghcr.io/erik-stief/bib-juice-shop:v20.1.1-bib`. That's Brownson's `juice-theme` baked into stock v20.1.1; it's public on erik-stief's GHCR, and an anonymous pull was verified Nov 26. **It must pass the daytime cold rehearsal** (themed pages load, verify + load test pass). If it doesn't, or if a deploy fails at `warm` on the pre-pull, delete the `--juice-image ...` line from the commands: the stock image is proven.
+- [ ] **Themed image.** The deploy commands below use the club theme: `ghcr.io/riaasehgal/bib-juice-shop:v20.1.1-bib`. That's Brownson's `juice-theme` baked into stock v20.1.1. It's built automatically by the repo's GitHub Action (`Build event images`) whenever the theme changes on `main`, and it's public (anonymous pull verified Nov 27). **It must pass the daytime cold rehearsal** (themed pages load, verify + load test pass). If it doesn't, or if a deploy fails at `warm` on the pre-pull, delete the `--juice-image ...` line from the commands: the stock image is proven.
 - [ ] **Presenter laptop.** Local Juice Shop v20.1.1 and Build-It (`node buildit/server.js`) work. These are not hosted on GKE.
-- [ ] **Hosted Build-It.** `--with-buildit` also puts Ria's Build-It site (the vulnerability web) on its **own public IP**, in *practice mode*: every visitor gets a private copy, **Save** only changes their copy, and **Reset** always returns it to the original vulnerable code. Nothing they do affects anyone else or any Juice Shop. The **live demo** (a fix really restarting Juice Shop) stays on the presenter laptop. Image: `ghcr.io/erik-stief/bib-buildit:v1`. If it causes any trouble, delete `--with-buildit` from the commands; MultiJuicer doesn't depend on it.
+- [ ] **Hosted Build-It.** `--with-buildit` also puts Ria's Build-It site (the vulnerability web) on its **own public IP**, in *practice mode*: every visitor gets a private copy, **Save** only changes their copy, and **Reset** always returns it to the original vulnerable code. Nothing they do affects anyone else or any Juice Shop. The **live demo** (a fix really restarting Juice Shop) stays on the presenter laptop. Image: `ghcr.io/riaasehgal/bib-buildit:v1`. If it causes any trouble, delete `--with-buildit` from the commands; MultiJuicer doesn't depend on it.
 - [ ] **Run sheet printed.** Fill it in as you go:
 
   | | Standby (trial) | Primary (event credits) |
@@ -49,7 +49,7 @@ Find the trial billing account ID with `gcloud billing accounts list` (format li
 ```
 bash hosting/deploy.sh --project bibi-standby-1127 --create-project \
   --billing-account <TRIAL_BILLING_ACCOUNT_ID> --instances 65 --machine-type e2-highmem-8 --nodes 1 \
-  --juice-image ghcr.io/erik-stief/bib-juice-shop:v20.1.1-bib --with-buildit
+  --juice-image ghcr.io/riaasehgal/bib-juice-shop:v20.1.1-bib --with-buildit
 ```
 
 - **Expected:** about **11–12 min**, ending with `VERIFY: all checks passed` and a banner showing the URL and admin passcode.
@@ -85,14 +85,14 @@ Run `gcloud billing accounts list` and `gcloud projects list`.
 ```
 bash hosting/deploy.sh --project bibi-event-1127 --create-project \
   --billing-account <NEW_BILLING_ACCOUNT_ID> --instances 65 --machine-type e2-highmem-8 --nodes 1 \
-  --juice-image ghcr.io/erik-stief/bib-juice-shop:v20.1.1-bib --with-buildit
+  --juice-image ghcr.io/riaasehgal/bib-juice-shop:v20.1.1-bib --with-buildit
 ```
 
 **Path B: organizer-made project**
 ```
 bash hosting/deploy.sh --project <THEIR_PROJECT_ID> --adopt-project \
   --instances 65 --machine-type e2-highmem-8 --nodes 1 \
-  --juice-image ghcr.io/erik-stief/bib-juice-shop:v20.1.1-bib --with-buildit
+  --juice-image ghcr.io/riaasehgal/bib-juice-shop:v20.1.1-bib --with-buildit
 ```
 If Path B fails at `billing` with "no billing account", the project isn't linked to the credits. Add `--billing-account <ID>` from `gcloud billing accounts list`.
 
@@ -182,7 +182,7 @@ Root cause first: read the error, run the check, *then* change something.
    - Path B (organizer-owned): `bash hosting/teardown.sh --project <THEIR_PROJECT_ID> --mode cluster --yes`
 3. Each must end with a `VERIFIED:` line. Without `--yes`, teardown only lists what exists.
 4. Optional: `gcloud auth revoke --all` on any shared machine.
-5. Take down the images on erik-stief's GHCR. For each of https://github.com/users/erik-stief/packages/container/bib-juice-shop/settings and https://github.com/users/erik-stief/packages/container/bib-buildit/settings → Danger Zone → **Delete this package**.
+5. Optional: the images live in the repo owner's GHCR (`riaasehgal/bib-juice-shop`, `riaasehgal/bib-buildit`) and can stay. The old personal copy `erik-stief/bib-juice-shop` is no longer used; delete it at https://github.com/users/erik-stief/packages/container/bib-juice-shop/settings → Danger Zone.
 6. Next day: Billing → My Billing Account → Reports, grouped by project, to confirm the spend.
 
 ---
