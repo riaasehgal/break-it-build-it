@@ -169,6 +169,27 @@
     return { toggle, run: () => kinRun() }
   })()
 
+  // ── Product quick view: stock has no "Add to basket" there, so add one ──
+  // It presses the card's own button, so Angular's basket logic (guest basket,
+  // quantity bump, snackbar, counter) runs exactly as stock.
+  let lastCard = null
+  const remember = e => { const c = e.target.closest && e.target.closest('app-product'); if (c) lastCard = c }
+  doc.addEventListener('click', remember, true)
+  doc.addEventListener('keydown', remember, true) // Enter on a card opens it too
+  const name = n => n ? n.textContent.trim() : ''
+  new MutationObserver(safe(() => {
+    const d = doc.querySelector('app-product-details')
+    const price = d && d.querySelector('.item-price')
+    if (!price || d.querySelector('.bib-add') || !lastCard || !lastCard.isConnected) return
+    const stock = lastCard.querySelector('.btn-basket')
+    if (!stock || name(lastCard.querySelector('.name')) !== name(d.querySelector('h1'))) return
+    const b = el('button', 'bib-btn solid bib-add')
+    b.type = 'button'
+    b.textContent = stock.getAttribute('aria-label') || 'Add to Basket'
+    b.addEventListener('click', () => stock.click())
+    price.after(b)
+  })).observe(body, { childList: true, subtree: true })
+
   function sync () { barRun(); home.run() }
   doc.addEventListener('visibilitychange', sync)
 

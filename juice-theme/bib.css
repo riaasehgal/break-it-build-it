@@ -299,6 +299,8 @@ app-product-details .no-shrink {
 app-product-details .no-shrink img { width: 100% !important; height: 100% !important; max-width: none !important; object-fit: cover; border: 0 !important; border-radius: 0 !important; background: transparent !important; }
 app-product-details h1 { margin: 0 0 10px !important; }
 app-product-details .item-price { font: 600 24px/1.2 var(--bib-mono) !important; color: #fff; margin: 0; }
+app-product-details div:has(> .bib-add) { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+app-product-details .bib-add:hover { background: var(--bib-green); }
 app-product-details .detail-divider { border-top-color: var(--bib-line) !important; margin: 20px 0 !important; }
 app-product-details .mat-expansion-panel { border: 1px solid var(--bib-line); border-radius: 16px !important; }
 
