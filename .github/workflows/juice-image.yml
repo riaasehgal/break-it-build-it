@@ -1,0 +1,136 @@
+# Builds the two event images and publishes them to this repo's owner on GHCR:
+#   ghcr.io/<owner>/bib-juice-shop:v20.1.1-bib   themed Juice Shop (stock v20.1.1 + juice-theme/)
+#   ghcr.io/<owner>/bib-buildit:v1               hosted Build-It (buildit/ in sandbox mode)
+# Each also gets a per-commit tag.
+#
+# - push to main touching the theme or Dockerfile -> build + push
+# - pull request touching them                    -> build only (proves it still builds)
+# - manual run (Actions tab -> Run workflow)      -> build + push
+#
+# One-time setup by the repo owner after the first successful push: GitHub -> Packages ->
+# bib-juice-shop AND bib-buildit -> Package settings -> Change visibility -> Public (GKE pulls them
+# without credentials).
+name: Build event images
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "juice-theme/**"
+      - "buildit/**"
+      - "hosting/buildit-image/**"
+      - "hosting/juice-image/**"
+      - ".github/workflows/juice-image.yml"
+  pull_request:
+    paths:
+      - "juice-theme/**"
+      - "buildit/**"
+      - "hosting/buildit-image/**"
+      - "hosting/juice-image/**"
+      - ".github/workflows/juice-image.yml"
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: juice-image-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  JUICE_SHOP_VERSION: v20.1.1
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Image name
+        id: img
+        run: |
+          echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/bib-juice-shop" >> "$GITHUB_OUTPUT"
+          echo "sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build (and push unless this is a PR)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: hosting/juice-image/Dockerfile
+          platforms: linux/amd64
+          build-args: JUICE_SHOP_VERSION=${{ env.JUICE_SHOP_VERSION }}
+          load: ${{ github.event_name == 'pull_request' }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ steps.img.outputs.name }}:${{ env.JUICE_SHOP_VERSION }}-bib
+            ${{ steps.img.outputs.name }}:${{ env.JUICE_SHOP_VERSION }}-${{ steps.img.outputs.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.description=OWASP Juice Shop ${{ env.JUICE_SHOP_VERSION }} with the Break It / Build It theme
+
+      - name: Smoke test (theme is served)
+        if: github.event_name == 'pull_request'
+        run: |
+          docker run -d --name js -p 3000:3000 "${{ steps.img.outputs.name }}:${{ env.JUICE_SHOP_VERSION }}-bib"
+          for _ in $(seq 1 30); do
+            if curl -fs localhost:3000/ | grep -q 'bib:start'; then echo "theme served"; exit 0; fi
+            sleep 2
+          done
+          docker logs js; exit 1
+
+  buildit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Image name
+        id: img
+        run: |
+          echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/bib-buildit" >> "$GITHUB_OUTPUT"
+          echo "sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build (and push unless this is a PR)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: hosting/buildit-image/Dockerfile
+          platforms: linux/amd64
+          load: ${{ github.event_name == 'pull_request' }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ steps.img.outputs.name }}:v1
+            ${{ steps.img.outputs.name }}:v1-${{ steps.img.outputs.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.description=Break It / Build It - hosted Build-It (sandbox mode)
+
+      - name: Smoke test (sandbox API answers)
+        if: github.event_name == 'pull_request'
+        run: |
+          docker run -d --name bi -p 3100:3100 "${{ steps.img.outputs.name }}:v1"
+          for _ in $(seq 1 30); do
+            if curl -fs localhost:3100/api/vulns | grep -q sqli; then echo "build-it up"; exit 0; fi
+            sleep 1
+          done
+          docker logs bi; exit 1

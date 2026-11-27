@@ -12,16 +12,25 @@
  *
  * Default JUICE_ROOT: ..\juice-shop  (sibling of this folder)
  * Default PORT: 3100
+ *
+ * BUILDIT_MODE=sandbox  (used by the hosted copy, see hosting/RUNBOOK.md)
+ *   Save/Reset never touch the files on disk. Each visitor (browser cookie) gets a private
+ *   in-memory practice copy: Save stores their edit, Reset always returns to the original
+ *   vulnerable code. Nobody affects anyone else. No Juice Shop is attached.
+ * JUICE_SHOP_URL=http://...  (optional) replaces the "Open Juice Shop" link (default localhost:3000)
  */
 
-const http = require('http')
-const fs   = require('fs')
-const path = require('path')
-const url  = require('url')
+const http   = require('http')
+const fs     = require('fs')
+const path   = require('path')
+const url    = require('url')
+const crypto = require('crypto')
 
 const JUICE_ROOT = process.env.JUICE_ROOT || path.join(__dirname, '..', 'juice-shop')
 const PORT       = Number(process.env.PORT) || 3100
 const PUBLIC_DIR = path.join(__dirname, 'public')
+const SANDBOX    = process.env.BUILDIT_MODE === 'sandbox'
+const JUICE_SHOP_URL = process.env.JUICE_SHOP_URL || ''
 
 // ─── Vulnerability definitions ────────────────────────────────────────────────
 // All `file` paths are inside build/ — compiled JS, no recompile needed.
@@ -148,13 +157,46 @@ const VULNS = [
 ]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+const MAX_BODY_BYTES = 64 * 1024
 function readBody (req) {
   return new Promise((resolve, reject) => {
     const chunks = []
-    req.on('data', c => chunks.push(c))
-    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')))
+    let size = 0
+    req.on('data', c => {
+      size += c.length
+      if (size <= MAX_BODY_BYTES) chunks.push(c)   // keep reading (and discarding) so we can still reply
+    })
+    req.on('end', () => size > MAX_BODY_BYTES ? reject(new Error('Body too large')) : resolve(Buffer.concat(chunks).toString('utf8')))
     req.on('error', reject)
   })
+}
+
+// ─── Sandbox mode: per-visitor practice copies (in memory only) ──────────────
+const SESSION_COOKIE = 'buildit_sid'
+const MAX_SESSIONS   = 5000              // oldest idle visitor is dropped beyond this
+const SESSION_IDLE_MS = 12 * 60 * 60 * 1000
+const MAX_CODE_CHARS = 20000
+const sessions = new Map()               // sid -> { seen: ms, edits: Map(vulnId -> code) }
+
+function getSession (req, res) {
+  const m = (req.headers.cookie || '').match(/(?:^|;\s*)buildit_sid=([a-f0-9]{32})(?:;|$)/)
+  let sid = m && m[1]
+  if (!sid || !sessions.has(sid)) {
+    sid = crypto.randomBytes(16).toString('hex')
+    sessions.set(sid, { seen: Date.now(), edits: new Map() })
+    res.setHeader('Set-Cookie', `${SESSION_COOKIE}=${sid}; Path=/; HttpOnly; SameSite=Lax; Max-Age=43200`)
+    if (sessions.size > MAX_SESSIONS) sessions.delete(sessions.keys().next().value)
+  }
+  const s = sessions.get(sid)
+  s.seen = Date.now()
+  sessions.delete(sid); sessions.set(sid, s)   // keep Map order = least recently used first
+  return s
+}
+if (SANDBOX) {
+  setInterval(() => {
+    const cutoff = Date.now() - SESSION_IDLE_MS
+    for (const [sid, s] of sessions) { if (s.seen < cutoff) sessions.delete(sid); else break }
+  }, 10 * 60 * 1000).unref()
 }
 
 function sendJson (res, status, obj) {
@@ -166,8 +208,12 @@ function sendJson (res, status, obj) {
 function serveFile (res, filePath) {
   const ext = path.extname(filePath).toLowerCase()
   const mime = { '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript', '.png': 'image/png' }
+  // Only serve files inside public/ (blocks /../server.js style requests).
+  const resolved = path.resolve(filePath)
+  if (!resolved.startsWith(path.resolve(PUBLIC_DIR) + path.sep)) { res.writeHead(404); res.end('Not found'); return }
   try {
-    const data = fs.readFileSync(filePath)
+    let data = fs.readFileSync(resolved)
+    if (JUICE_SHOP_URL && ext === '.html') data = Buffer.from(data.toString('utf8').split('http://localhost:3000').join(JUICE_SHOP_URL))
     res.writeHead(200, { 'Content-Type': mime[ext] || 'application/octet-stream' })
     res.end(data)
   } catch {
@@ -183,6 +229,54 @@ const server = http.createServer(async (req, res) => {
   // GET /api/vulns
   if (req.method === 'GET' && pathname === '/api/vulns') {
     return sendJson(res, 200, VULNS.map(v => ({ id: v.id, title: v.title })))
+  }
+
+  // Sandbox mode: detail/save/reset work on the visitor's private copy, never on disk.
+  if (SANDBOX) {
+    const m = pathname.match(/^\/api\/vulns\/([^/]+)(\/save|\/reset)?$/)
+    if (m) {
+      const vuln = VULNS.find(v => v.id === m[1])
+      if (!vuln) return sendJson(res, 404, { error: 'Not found' })
+      const action = m[2] || ''
+      if (!vuln.file) {
+        if (req.method !== 'GET' || action) return sendJson(res, 400, { error: 'This entry is read-only.' })
+        return sendJson(res, 200, {
+          id: vuln.id, title: vuln.title, file: null, explanation: vuln.explanation,
+          vulnerable: null, fixed: null, isVulnerable: true, currentCode: null, readOnly: true
+        })
+      }
+      const session = getSession(req, res)
+      const edit = session.edits.get(vuln.id)
+      if (req.method === 'GET' && !action) {
+        const isVulnerable = edit === undefined || edit === vuln.vulnerable
+        return sendJson(res, 200, {
+          id: vuln.id, title: vuln.title, file: vuln.file, explanation: vuln.explanation,
+          vulnerable: vuln.vulnerable, fixed: vuln.fixed, isVulnerable,
+          currentCode: edit === undefined ? vuln.vulnerable : edit, readOnly: false
+        })
+      }
+      if (req.method === 'POST' && action === '/save') {
+        let body
+        try { body = JSON.parse(await readBody(req)) }
+        catch { return sendJson(res, 400, { error: 'Invalid or too large request' }) }
+        if (typeof body.code !== 'string') return sendJson(res, 400, { error: 'Missing code' })
+        if (body.code.length > MAX_CODE_CHARS) return sendJson(res, 400, { error: `Code is too long (max ${MAX_CODE_CHARS} characters)` })
+        if (edit !== undefined && edit !== vuln.vulnerable) {
+          return sendJson(res, 200, { status: 'already_fixed', message: 'Your practice copy is already patched. Reset first to try again.' })
+        }
+        session.edits.set(vuln.id, body.code)
+        return sendJson(res, 200, { status: 'saved', message: `Saved to your practice copy of ${vuln.file}. (Only you see this; the live demo runs on the presenter's screen.)` })
+      }
+      if (req.method === 'POST' && action === '/reset') {
+        if (edit === undefined || edit === vuln.vulnerable) {
+          session.edits.delete(vuln.id)
+          return sendJson(res, 200, { status: 'already_vulnerable', message: 'Your practice copy already has the original vulnerable code.' })
+        }
+        session.edits.delete(vuln.id)
+        return sendJson(res, 200, { status: 'reset', message: `Your practice copy of ${vuln.file} is back to the original vulnerable code.` })
+      }
+      return sendJson(res, 405, { error: 'Method not allowed' })
+    }
   }
 
   // GET /api/vulns/:id
@@ -260,5 +354,5 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`\nBuild-It tool running at http://localhost:${PORT}`)
-  console.log(`Juice Shop root: ${JUICE_ROOT}\n`)
+  console.log(SANDBOX ? 'Mode: sandbox (per-visitor practice copies, files on disk are never changed)\n' : `Juice Shop root: ${JUICE_ROOT}\n`)
 })

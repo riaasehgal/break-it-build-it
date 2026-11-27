@@ -1,0 +1,55 @@
+# Juice Shop is intentionally vulnerable (SSRF, RCE-style challenges). Contain every instance:
+#  ingress: only the MultiJuicer balancer, only TCP 3000 (also blocks team-to-team traffic)
+#  egress:  only cluster DNS and the balancer's private port 8082 (solve webhook).
+#           Everything else is dropped: internet, metadata server (169.254.169.254/.252), kube API.
+# GKE Dataplane V2 always enforces NetworkPolicy.
+# DNS: GKE enables NodeLocal DNSCache by default, which silently redirects pod queries for the kube-dns
+# Service IP to a node-local-dns pod. Allowing only kube-dns broke all name lookups (found in the
+# 2026-11-26 trial run: EAI_AGAIN after 20 s), so both DNS backends are allowed.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: juice-shop-isolation
+  namespace: multi-juicer
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: juice-shop
+      app.kubernetes.io/part-of: multi-juicer
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: multi-juicer
+      ports:
+        - protocol: TCP
+          port: 3000
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: node-local-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: multi-juicer
+      ports:
+        - protocol: TCP
+          port: 8082
