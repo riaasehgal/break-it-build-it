@@ -8,6 +8,9 @@ All numbers below were measured in the trial rehearsal on Nov 26 (see [Measured 
 
 ## How to run the scripts
 
+New machine? Set it up with [SETUP-LAPTOP.md](SETUP-LAPTOP.md) first (or just use Cloud Shell).
+
+
 | Where | Command prefix |
 |---|---|
 | **Cloud Shell** (shell.cloud.google.com) | `bash hosting/<script>.sh ...` |
