@@ -34,6 +34,10 @@ spec:
           env:
             - name: BUILDIT_MODE
               value: sandbox
+            # Filled by deploy.sh with the MultiJuicer URL (empty on the very first apply). Keeping it in the
+            # manifest means re-running deploy.sh doesn't restart the pod and wipe visitors' practice copies.
+            - name: JUICE_SHOP_URL
+              value: "__JUICE_SHOP_URL__"
           readinessProbe:
             httpGet:
               path: /api/vulns

@@ -190,6 +190,7 @@ create_budget() {
       --threshold-rule=percent=0.25 --threshold-rule=percent=0.5 \
       --threshold-rule=percent=0.9 --threshold-rule=percent=1.0 --quiet >/dev/null 2>"$GEN/budget.err"; then
     log "budget: created $name ($BUDGET, billing-account currency; emails go to billing admins)"
+    rm -f "$GEN/budget.err"   # gcloud writes "Created [...]" to stderr even on success
   else
     warn "budget: not created (details: $GEN/budget.err). Set one in the console: Billing > Budgets & alerts."
   fi
@@ -234,16 +235,33 @@ kubectl apply -f - < "$HERE/manifests/lb-service.yaml"
 kubectl apply -f - < "$HERE/manifests/networkpolicy.yaml"
 sed "s|__JUICE_IMAGE__|${JUICE_IMAGE}|g" "$HERE/manifests/prepull-daemonset.yaml" | kubectl apply -f -
 if (( WITH_BUILDIT )); then
-  sed "s|__BUILDIT_IMAGE__|${BUILDIT_IMAGE}|g" "$HERE/manifests/buildit.yaml" | kubectl apply -f -
+  # Carry over the "Open Juice Shop" URL already set on a running Build-It, so a re-run is a no-op for the pod.
+  buildit_juice_url=$(kubectl -n "$NAMESPACE" get deploy buildit \
+    -o jsonpath='{.spec.template.spec.containers[0].env[?(@.name=="JUICE_SHOP_URL")].value}' 2>/dev/null || true)
+  sed -e "s|__BUILDIT_IMAGE__|${BUILDIT_IMAGE}|g" -e "s|__JUICE_SHOP_URL__|${buildit_juice_url}|g" \
+    "$HERE/manifests/buildit.yaml" | kubectl apply -f -
 fi
 phase_end; maybe_stop k8s-base
 
 # ---- helm ----
 phase_start helm
 if [[ ! -s $SECRETS ]]; then
-  ( umask 077
-    printf 'adminPassword: "%s"\ncookie:\n  cookieParserSecret: "%s"\n' "$(random_secret 20)" "$(random_secret 24)" > "$SECRETS" )
-  log "generated new admin password + cookie secret in $SECRETS"
+  # Re-running against a live deployment from another machine (no local secrets file)? Re-use the secrets the
+  # cluster already has. Generating new ones would change the admin passcode and log every participant out.
+  secret_field() {
+    kubectl -n "$NAMESPACE" get secret multi-juicer-secret -o jsonpath="{.data.$1}" 2>/dev/null | base64 -d 2>/dev/null || true
+  }
+  existing_admin=$(secret_field adminPassword)
+  existing_cookie=$(secret_field cookieParserSecret)
+  if [[ $existing_admin =~ ^[A-Za-z0-9]+$ && $existing_cookie =~ ^[A-Za-z0-9]+$ ]]; then
+    ( umask 077
+      printf 'adminPassword: "%s"\ncookie:\n  cookieParserSecret: "%s"\n' "$existing_admin" "$existing_cookie" > "$SECRETS" )
+    log "re-using the running deployment's admin password + cookie secret (saved to $SECRETS); nobody is logged out"
+  else
+    ( umask 077
+      printf 'adminPassword: "%s"\ncookie:\n  cookieParserSecret: "%s"\n' "$(random_secret 20)" "$(random_secret 24)" > "$SECRETS" )
+    log "generated new admin password + cookie secret in $SECRETS"
+  fi
 fi
 helm upgrade --install "$RELEASE" "$CHART_REF" --version "$CHART_VERSION" --namespace "$NAMESPACE" \
   -f "$(native_path "$HERE/values.yaml")" -f "$(native_path "$SECRETS")" \

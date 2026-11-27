@@ -94,22 +94,25 @@ about an hour idle. Re-open it and `cd break-it-build-it` again.
 
 ---
 
-## Important: taking over a deployment someone else started
+## Taking over a deployment someone else started
 
-Each deployment's **admin passcode, cookie secret, kubeconfig and URL** are saved only on the machine that ran
-`deploy.sh`, in `hosting/generated/<project>/`. That folder is never committed. On a second laptop:
+Each deployment's **admin passcode, cookie secret, kubeconfig and URL** are saved on the machine that ran
+`deploy.sh`, in `hosting/generated/<project>/`. That folder is never committed. From a second laptop:
 
-- **Do not re-run `deploy.sh` for a running deployment without that folder.** It would generate a new admin
-  passcode and cookie secret, which **logs every participant out**.
-- **Instead, copy the folder** from the original machine, privately (USB stick or direct message, never the
-  repo or a public channel), into the same path on your laptop: `hosting/generated/<project>/`.
-- Without the folder, read-only help still works:
+- **Re-run the same deploy command** the first operator used (same `--project`, `--instances`, images,
+  `--with-buildit`; the zone too if it wasn't the default). Finished phases are skipped. When the local secrets
+  file is missing, deploy.sh **reads the admin passcode and cookie secret back from the running cluster**
+  instead of generating new ones, so **nobody is logged out**. The final banner then shows the URLs and
+  passcode, and `verify.sh` / `loadtest.sh` work on your laptop too.
+- Need only a quick look, without changing anything?
   ```bash
   gcloud container clusters get-credentials juice --zone us-central1-a --project <project>
   kubectl -n multi-juicer get pods
   ```
-  Teardown also works, because it identifies the project by its label:
+- Teardown works from any machine, because it identifies the project by its label:
   `bash hosting/teardown.sh --project <project> --mode project` (dry run first, then add `--yes`).
+  An organizer-made project that was *adopted* (`--adopt-project`) carries no label. Run the deploy command
+  with `--adopt-project` once first, or tear it down from the original laptop.
 
 ---
 

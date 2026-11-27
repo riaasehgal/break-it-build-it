@@ -51,7 +51,7 @@ Find the trial billing account ID with `gcloud billing accounts list` (format li
 
 ```
 bash hosting/deploy.sh --project bibi-standby-1127 --create-project \
-  --billing-account <TRIAL_BILLING_ACCOUNT_ID> --instances 65 --machine-type e2-highmem-8 --nodes 1 \
+  --billing-account <TRIAL_BILLING_ACCOUNT_ID> --instances 85 --machine-type e2-highmem-8 --nodes 1 \
   --juice-image ghcr.io/riaasehgal/bib-juice-shop:v20.1.1-bib --with-buildit
 ```
 
@@ -87,14 +87,14 @@ Run `gcloud billing accounts list` and `gcloud projects list`.
 **Path A: new billing account, we create the project**
 ```
 bash hosting/deploy.sh --project bibi-event-1127 --create-project \
-  --billing-account <NEW_BILLING_ACCOUNT_ID> --instances 65 --machine-type e2-highmem-8 --nodes 1 \
+  --billing-account <NEW_BILLING_ACCOUNT_ID> --instances 85 --machine-type e2-highmem-8 --nodes 1 \
   --juice-image ghcr.io/riaasehgal/bib-juice-shop:v20.1.1-bib --with-buildit
 ```
 
 **Path B: organizer-made project**
 ```
 bash hosting/deploy.sh --project <THEIR_PROJECT_ID> --adopt-project \
-  --instances 65 --machine-type e2-highmem-8 --nodes 1 \
+  --instances 85 --machine-type e2-highmem-8 --nodes 1 \
   --juice-image ghcr.io/riaasehgal/bib-juice-shop:v20.1.1-bib --with-buildit
 ```
 If Path B fails at `billing` with "no billing account", the project isn't linked to the credits. Add `--billing-account <ID>` from `gcloud billing accounts list`.
@@ -169,7 +169,9 @@ Root cause first: read the error, run the check, *then* change something.
 - **Admin.** Open the URL and join team **`admin`** with the admin passcode **from the final banner** (also stored in `hosting/generated/<project>/secret-values.yaml`). Ignore the `Password: ${kubectl get secrets ...}` line in the Helm NOTES halfway through the output: that's a lookup command, not a password. The admin page lists every instance, with restart and delete.
 - **Stuck instance.** Use Restart in the admin UI, or `kubectl -n multi-juicer delete pod -l team=<teamname>`. Progress is restored automatically by MultiJuicer's progress sync.
 - **How many instances exist:** `kubectl -n multi-juicer get deploy -l app.kubernetes.io/name=juice-shop --no-headers | wc -l`
-- **"Reached Maximum Instance Count"** means more people came than planned. Re-run the deploy command with `--instances 85`. It only updates the Helm release (~1 min), the node holds up to ~90, and nobody gets logged out (the cookie secret is kept).
+- **Capacity.** The commands allow **85 instances** (one per person or team): enough for ~90 people if a few pair up. The `e2-highmem-8` node holds about 90 (Kubernetes' 110-pods-per-node cap; memory is not the limit).
+- **"Reached Maximum Instance Count"** means instance 86 was requested. Re-run the same deploy command with `--instances 90`: it only updates the Helm release (~1 min) and nobody gets logged out. Beyond 90, ask late arrivals to join a teammate's team.
+- **Running the deploy from a different laptop** than the one that first deployed is safe: if `hosting/generated/<project>/secret-values.yaml` is missing, deploy.sh reads the admin passcode and cookie secret back from the running cluster instead of generating new ones (which would log everyone out). See [SETUP-LAPTOP.md](SETUP-LAPTOP.md).
 - **Load test** against a live deployment: `bash hosting/loadtest.sh --project <project> --teams 10 --cleanup`. Only use it before doors open: it creates real instances.
 
 ---
