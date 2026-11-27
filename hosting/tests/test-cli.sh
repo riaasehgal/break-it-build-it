@@ -21,6 +21,7 @@ expect_fail "deploy needs --instances"      "--instances must be"       bash "$H
 expect_fail "deploy rejects bad project id" "invalid project ID"        bash "$H/deploy.sh" --project Bad_ID --instances 5
 expect_fail "deploy rejects unknown flag"   "unknown argument"          bash "$H/deploy.sh" --bogus
 expect_fail "deploy rejects bad phase"      "--stop-after must be one of" bash "$H/deploy.sh" --project bibi-test-abc --instances 5 --stop-after nope
+expect_fail "deploy rejects bad buildit img" "--buildit-image must be" bash "$H/deploy.sh" --project bibi-test-abc --instances 5 --buildit-image nodigest
 expect_ok   "verify --help"                 "Usage: verify.sh"          bash "$H/verify.sh" --help
 expect_fail "verify needs --project"        "--project is required"     bash "$H/verify.sh"
 expect_ok   "loadtest --help"               "Usage: loadtest.sh"        bash "$H/loadtest.sh" --help

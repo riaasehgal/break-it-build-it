@@ -30,6 +30,8 @@ Options:
   --machine-type T        Default: e2-standard-8 (falls back automatically if quota is short)
   --nodes N               Default: ceil(instances / 40)
   --juice-image IMG:TAG   Default: bkimminich/juice-shop:v20.1.1
+  --with-buildit          Also host the Build-It site (sandbox mode) on its own public IP.
+  --buildit-image IMG:TAG Default: ghcr.io/erik-stief/bib-buildit:v1
   --budget AMOUNT         Budget alert in the billing account's currency; 0 = skip. Default: 50
   --stop-after PHASE      Stop after PHASE: preflight project billing apis quota node-sa cluster k8s-base helm warm
   --skip-verify           Skip the smoke test and isolation probes.
@@ -39,6 +41,7 @@ EOF
 
 PROJECT="" INSTANCES="" CREATE_PROJECT=0 ADOPT_PROJECT=0 BILLING_ACCOUNT="" REGION="us-central1" ZONE=""
 MACHINE_TYPE="e2-standard-8" NODES="" JUICE_IMAGE="bkimminich/juice-shop:v20.1.1" BUDGET=50 STOP_AFTER="" SKIP_VERIFY=0
+WITH_BUILDIT=0 BUILDIT_IMAGE="ghcr.io/erik-stief/bib-buildit:v1"
 CLUSTER="juice"
 
 while (( $# )); do
@@ -53,6 +56,8 @@ while (( $# )); do
     --machine-type) MACHINE_TYPE=${2:-}; shift 2 ;;
     --nodes) NODES=${2:-}; shift 2 ;;
     --juice-image) JUICE_IMAGE=${2:-}; shift 2 ;;
+    --with-buildit) WITH_BUILDIT=1; shift ;;
+    --buildit-image) BUILDIT_IMAGE=${2:-}; shift 2 ;;
     --budget) BUDGET=${2:-}; shift 2 ;;
     --stop-after) STOP_AFTER=${2:-}; shift 2 ;;
     --skip-verify) SKIP_VERIFY=1; shift ;;
@@ -69,6 +74,7 @@ if ! [[ $INSTANCES =~ ^[0-9]+$ ]] || (( INSTANCES < 1 )); then die "--instances 
 if [[ -n $STOP_AFTER && " $PHASES " != *" $STOP_AFTER "* ]]; then die "--stop-after must be one of: $PHASES"; fi
 if [[ -n $NODES ]] && { ! [[ $NODES =~ ^[0-9]+$ ]] || (( NODES < 1 )); }; then die "--nodes must be a positive number"; fi
 [[ $JUICE_IMAGE == *:* && $JUICE_IMAGE != *@* ]] || die "--juice-image must be IMAGE:TAG (digests not supported)"
+[[ $BUILDIT_IMAGE == *:* && $BUILDIT_IMAGE != *@* ]] || die "--buildit-image must be IMAGE:TAG (digests not supported)"
 ZONE=${ZONE:-${REGION}-a}
 NODES=${NODES:-$(auto_nodes "$INSTANCES")}
 GEN=$(project_gen_dir "$PROJECT"); mkdir -p "$GEN"
@@ -145,6 +151,7 @@ else
   cpus_r=$(free_of "$regional" CPUS); cpus_g=$(free_of "$global" CPUS_ALL_REGIONS)
   addrs=$(free_of "$regional" IN_USE_ADDRESSES); ssd=$(free_of "$regional" SSD_TOTAL_GB)
   free_cpus=$(( cpus_r < cpus_g ? cpus_r : cpus_g ))
+  if (( WITH_BUILDIT )); then addrs=$((addrs - 1)); fi   # Build-It's LoadBalancer needs one more external IP
   log "free quota: CPUS($REGION)=$cpus_r CPUS_ALL_REGIONS=$cpus_g IN_USE_ADDRESSES=$addrs SSD_TOTAL_GB=$ssd"
   printf 'region=%s cpus=%s cpus_all_regions=%s in_use_addresses=%s ssd_total_gb=%s\n' \
     "$REGION" "$cpus_r" "$cpus_g" "$addrs" "$ssd" > "$GEN/quota.txt"
@@ -226,6 +233,9 @@ retry 10 2 kubectl -n "$NAMESPACE" patch serviceaccount default -p '{"automountS
 kubectl apply -f - < "$HERE/manifests/lb-service.yaml"
 kubectl apply -f - < "$HERE/manifests/networkpolicy.yaml"
 sed "s|__JUICE_IMAGE__|${JUICE_IMAGE}|g" "$HERE/manifests/prepull-daemonset.yaml" | kubectl apply -f -
+if (( WITH_BUILDIT )); then
+  sed "s|__BUILDIT_IMAGE__|${BUILDIT_IMAGE}|g" "$HERE/manifests/buildit.yaml" | kubectl apply -f -
+fi
 phase_end; maybe_stop k8s-base
 
 # ---- helm ----
@@ -255,6 +265,25 @@ done
 [[ -n $LB_IP ]] || die "LoadBalancer IP not assigned after 5 min. Check: kubectl -n $NAMESPACE describe svc multi-juicer-public"
 URL="http://$LB_IP"
 retry 30 5 curl -fsS -o /dev/null --max-time 5 "$URL/multi-juicer/api/readiness"
+# Build-It is optional: any problem here is a warning, never a reason to fail the MultiJuicer deploy.
+warm_buildit() {
+  local ip=""
+  for _ in $(seq 1 60); do
+    ip=$(kubectl -n "$NAMESPACE" get svc buildit-public -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || true)
+    if [[ -n $ip ]]; then break; fi
+    sleep 5
+  done
+  if [[ -z $ip ]]; then warn "Build-It LoadBalancer IP not assigned after 5 min (kubectl -n $NAMESPACE describe svc buildit-public)"; return 1; fi
+  # Point Build-It's "Open Juice Shop" button at MultiJuicer (no-op if already set).
+  kubectl -n "$NAMESPACE" set env deploy/buildit JUICE_SHOP_URL="$URL" || return 1
+  kubectl -n "$NAMESPACE" rollout status deploy/buildit --timeout=3m || return 1
+  retry 30 5 curl -fsS -o /dev/null --max-time 5 "http://$ip/api/vulns" || return 1
+  BUILDIT_URL="http://$ip"
+}
+BUILDIT_URL=""
+if (( WITH_BUILDIT )) && ! warm_buildit; then
+  warn "Build-It is NOT ready. MultiJuicer is fine; re-run the same command later to retry Build-It."
+fi
 cat > "$GEN/deploy-info.env" <<EOF
 PROJECT=$PROJECT
 ZONE=$ZONE
@@ -264,6 +293,7 @@ INSTANCES=$INSTANCES
 SHAPE=${NODES_FINAL}x${MACHINE_TYPE_FINAL}
 GKE_VERSION=$GKE_VERSION
 JUICE_IMAGE=$JUICE_IMAGE
+BUILDIT_URL=$BUILDIT_URL
 EOF
 phase_end; maybe_stop warm
 
@@ -281,6 +311,7 @@ cat >&2 <<EOF
 ================================================================
  Participants:  $URL
  Admin:         $URL  -> team name "admin", passcode: $ADMIN_PASSWORD
+ Build-It:      ${BUILDIT_URL:-(not deployed; add --with-buildit)}
  Capacity:      $INSTANCES instances on ${NODES_FINAL}x${MACHINE_TYPE_FINAL} (GKE $GKE_VERSION)
  kubectl:       export KUBECONFIG="$KUBECONFIG"
  Load test:     hosting/loadtest.sh --project $PROJECT --teams 10 --cleanup

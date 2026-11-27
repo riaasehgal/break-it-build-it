@@ -1,3 +1,5 @@
 *
 !juice-theme/**
 !hosting/juice-image/**
+!buildit/**
+!hosting/buildit-image/**

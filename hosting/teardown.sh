@@ -55,8 +55,8 @@ if [[ $MODE == cluster ]]; then
   if gcloud container clusters describe "$CLUSTER" --zone "$ZONE" --project "$PROJECT" >/dev/null 2>&1; then
     gcloud container clusters get-credentials "$CLUSTER" --zone "$ZONE" --project "$PROJECT" --quiet || true
     # Delete the LoadBalancer Service first so GKE removes the forwarding rule it created.
-    kubectl -n "$NAMESPACE" delete svc multi-juicer-public --wait=true --timeout=3m \
-      || warn "could not delete the LB service; checking for leftover forwarding rules below"
+    kubectl -n "$NAMESPACE" delete svc multi-juicer-public buildit-public --ignore-not-found --wait=true --timeout=3m \
+      || warn "could not delete the LB services; checking for leftover forwarding rules below"
     gcloud container clusters delete "$CLUSTER" --zone "$ZONE" --project "$PROJECT" --quiet
   else
     log "cluster $CLUSTER not found in $ZONE"

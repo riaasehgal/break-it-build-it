@@ -9,6 +9,7 @@ run test-sizing.sh
 run test-cli.sh
 run test-render.sh
 run test-manifests.sh
+run test-buildit.sh
 
 echo "== shellcheck"
 if command -v docker >/dev/null 2>&1; then

@@ -27,12 +27,14 @@ Run the deploy, verify and teardown for a given project **from the same machine*
 - [ ] **Cloud Shell rehearsal (untested so far).** If you plan to use Cloud Shell on the night, do the daytime cold rehearsal there.
 - [ ] **Themed image.** The deploy commands below use the club theme: `ghcr.io/erik-stief/bib-juice-shop:v20.1.1-bib`. That's Brownson's `juice-theme` baked into stock v20.1.1; it's public on erik-stief's GHCR, and an anonymous pull was verified Nov 26. **It must pass the daytime cold rehearsal** (themed pages load, verify + load test pass). If it doesn't, or if a deploy fails at `warm` on the pre-pull, delete the `--juice-image ...` line from the commands: the stock image is proven.
 - [ ] **Presenter laptop.** Local Juice Shop v20.1.1 and Build-It (`node buildit/server.js`) work. These are not hosted on GKE.
+- [ ] **Hosted Build-It.** `--with-buildit` also puts Ria's Build-It site (the vulnerability web) on its **own public IP**, in *practice mode*: every visitor gets a private copy, **Save** only changes their copy, and **Reset** always returns it to the original vulnerable code. Nothing they do affects anyone else or any Juice Shop. The **live demo** (a fix really restarting Juice Shop) stays on the presenter laptop. Image: `ghcr.io/erik-stief/bib-buildit:v1`. If it causes any trouble, delete `--with-buildit` from the commands; MultiJuicer doesn't depend on it.
 - [ ] **Run sheet printed.** Fill it in as you go:
 
   | | Standby (trial) | Primary (event credits) |
   |---|---|---|
   | Project ID | | |
   | URL | | |
+  | Build-It URL | | |
   | Admin passcode | | |
   | Deploy finished at | | |
 
@@ -47,12 +49,12 @@ Find the trial billing account ID with `gcloud billing accounts list` (format li
 ```
 bash hosting/deploy.sh --project bibi-standby-1127 --create-project \
   --billing-account <TRIAL_BILLING_ACCOUNT_ID> --instances 65 --machine-type e2-highmem-8 --nodes 1 \
-  --juice-image ghcr.io/erik-stief/bib-juice-shop:v20.1.1-bib
+  --juice-image ghcr.io/erik-stief/bib-juice-shop:v20.1.1-bib --with-buildit
 ```
 
 - **Expected:** about **11–12 min**, ending with `VERIFY: all checks passed` and a banner showing the URL and admin passcode.
 - Copy the URL and passcode onto the run sheet.
-- **Make a QR code for the standby URL.** In Chrome, open the URL, then address bar → Share → Create QR code. Save it on the slide laptop as `standby-qr.png`.
+- **Make QR codes for the standby URL and its Build-It URL.** In Chrome, open the URL, then address bar → Share → Create QR code. Save them on the slide laptop as `standby-qr.png` and `standby-buildit-qr.png`.
 - **Keep the banner off the projector**: it shows the admin passcode.
 - Cost: about CA$0.50/h of trial credit.
 
@@ -83,14 +85,14 @@ Run `gcloud billing accounts list` and `gcloud projects list`.
 ```
 bash hosting/deploy.sh --project bibi-event-1127 --create-project \
   --billing-account <NEW_BILLING_ACCOUNT_ID> --instances 65 --machine-type e2-highmem-8 --nodes 1 \
-  --juice-image ghcr.io/erik-stief/bib-juice-shop:v20.1.1-bib
+  --juice-image ghcr.io/erik-stief/bib-juice-shop:v20.1.1-bib --with-buildit
 ```
 
 **Path B: organizer-made project**
 ```
 bash hosting/deploy.sh --project <THEIR_PROJECT_ID> --adopt-project \
   --instances 65 --machine-type e2-highmem-8 --nodes 1 \
-  --juice-image ghcr.io/erik-stief/bib-juice-shop:v20.1.1-bib
+  --juice-image ghcr.io/erik-stief/bib-juice-shop:v20.1.1-bib --with-buildit
 ```
 If Path B fails at `billing` with "no billing account", the project isn't linked to the credits. Add `--billing-account <ID>` from `gcloud billing accounts list`.
 
@@ -150,6 +152,7 @@ Root cause first: read the error, run the check, *then* change something.
 | warm | `LoadBalancer IP not assigned` | `kubectl -n multi-juicer describe svc multi-juicer-public` | Usually quota on IN_USE_ADDRESSES; re-run once, else **standby** |
 | verify | `cannot resolve ... DNS egress is broken` | (none) | NetworkPolicy DNS rule; solve notifications won't work, but the app does. GO, and tell presenters the scoreboard may lag |
 | verify | `expected BLOCKED, got REACHABLE` | which target | Isolation gap. Don't open with this deployment if the standby passes → **standby** |
+| warm / verify | anything mentioning **Build-It** | `kubectl -n multi-juicer describe deploy buildit`, `kubectl -n multi-juicer logs deploy/buildit` | Build-It is optional: **GO with MultiJuicer anyway**. Re-run later to retry, or drop `--with-buildit` |
 | verify | `team create returned HTTP 500` | `kubectl -n multi-juicer logs deploy/multi-juicer` | Read the log; re-run deploy |
 
 **kubectl access:**
@@ -179,7 +182,7 @@ Root cause first: read the error, run the check, *then* change something.
    - Path B (organizer-owned): `bash hosting/teardown.sh --project <THEIR_PROJECT_ID> --mode cluster --yes`
 3. Each must end with a `VERIFIED:` line. Without `--yes`, teardown only lists what exists.
 4. Optional: `gcloud auth revoke --all` on any shared machine.
-5. Take down the themed image. Go to https://github.com/users/erik-stief/packages/container/bib-juice-shop/settings → Danger Zone → **Delete this package**.
+5. Take down the images on erik-stief's GHCR. For each of https://github.com/users/erik-stief/packages/container/bib-juice-shop/settings and https://github.com/users/erik-stief/packages/container/bib-buildit/settings → Danger Zone → **Delete this package**.
 6. Next day: Billing → My Billing Account → Reports, grouped by project, to confirm the spend.
 
 ---

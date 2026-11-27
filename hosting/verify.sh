@@ -86,6 +86,29 @@ if (( ready )); then
   if [[ $r == *BLOCKED* ]]; then pass "unlabelled pod -> juice shop blocked"; else fail "unlabelled pod -> juiceshop-$TEAM:3000 expected BLOCKED, got: $r"; fi
 fi
 
+# 3b. hosted Build-It (only if deployed with --with-buildit)
+if [[ -n ${BUILDIT_URL:-} ]]; then
+  BA=$(mktemp); BB=$(mktemp)
+  code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$BUILDIT_URL/api/vulns" || echo 000)
+  if [[ $code == 200 ]]; then pass "Build-It answers at $BUILDIT_URL"; else fail "Build-It /api/vulns returned HTTP $code"; fi
+  curl -s -o /dev/null --max-time 10 -b "$BA" -c "$BA" -X POST -H 'Content-Type: application/json' \
+    -d '{"code":"verify-edit"}' "$BUILDIT_URL/api/vulns/sqli/save" || true
+  a=$(curl -s --max-time 10 -b "$BA" -c "$BA" "$BUILDIT_URL/api/vulns/sqli" || true)
+  b=$(curl -s --max-time 10 -b "$BB" -c "$BB" "$BUILDIT_URL/api/vulns/sqli" || true)
+  if [[ $a == *'"isVulnerable":false'* && $b == *'"isVulnerable":true'* ]]; then
+    pass "Build-It practice copies are per visitor"
+  else
+    fail "Build-It sandbox isolation (visitor A: ${a:0:80} / visitor B: ${b:0:80})"
+  fi
+  r=$(curl -s --max-time 10 -b "$BA" -c "$BA" -X POST -H 'Content-Type: application/json' "$BUILDIT_URL/api/vulns/sqli/reset" || true)
+  if [[ $r == *'"status":"reset"'* ]]; then pass "Build-It reset restores the original"; else fail "Build-It reset: ${r:0:120}"; fi
+  rm -f "$BA" "$BB"
+  code=$(curl -s --path-as-is -o /dev/null -w '%{http_code}' --max-time 10 "$BUILDIT_URL/../server.js" || echo 000)
+  if [[ $code == 404 ]]; then pass "Build-It blocks path traversal"; else fail "Build-It /../server.js returned HTTP $code"; fi
+  r=$(no_pathconv kubectl -n "$NAMESPACE" exec deploy/buildit -- node -e "$PROBE_JS" 8.8.8.8 443 2>/dev/null || echo "EXEC-FAILED")
+  if [[ $r == BLOCKED* ]]; then pass "Build-It pod -> internet blocked ($r)"; else fail "Build-It pod -> 8.8.8.8:443 expected BLOCKED, got: $r"; fi
+fi
+
 # 4. cleanup via admin API
 curl -s -o /dev/null --max-time 10 -c "$ADMIN_JAR" -H 'Content-Type: application/json' \
   -d "{\"passcode\":\"$ADMIN_PASSWORD\"}" -X POST "$URL/multi-juicer/api/teams/admin/join" || true
