@@ -1,1 +1,17 @@
-node_modules/ 
+node_modules/
+
+# Generated per deploy: secrets, kubeconfigs, timings, load-test results
+hosting/generated/
+
+# Never commit credentials
+*.kubeconfig
+kubeconfig
+.kube/
+secret-values*.yaml
+.env
+.env.*
+*.pem
+*.key
+
+# Working notes from planning (stale vs. the code; the runbook is the source of truth)
+docs/superpowers/

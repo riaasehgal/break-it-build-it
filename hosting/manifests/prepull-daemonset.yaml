@@ -1,0 +1,54 @@
+# Pulls the Juice Shop image onto every node before anyone registers. The init container runs the image
+# (distroless: no shell, node at /nodejs/bin/node) and exits; pause keeps the pod cheap afterwards.
+# deploy.sh replaces __JUICE_IMAGE__ with the exact image MultiJuicer will use.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: juice-shop-prepull
+  namespace: multi-juicer
+  labels:
+    app: juice-shop-prepull
+spec:
+  selector:
+    matchLabels:
+      app: juice-shop-prepull
+  template:
+    metadata:
+      labels:
+        app: juice-shop-prepull
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: pull-juice-shop
+          image: __JUICE_IMAGE__
+          imagePullPolicy: IfNotPresent
+          command: ["/nodejs/bin/node", "-e", "0"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+      containers:
+        - name: pause
+          image: registry.k8s.io/pause:3.10
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 1m
+              memory: 8Mi
+            limits:
+              cpu: 10m
+              memory: 16Mi

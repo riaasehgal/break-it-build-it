@@ -1,0 +1,17 @@
+# Public entry point: http://<LB IP>/ -> balancer :8080. Plain HTTP on port 80 because campus networks
+# reliably allow it; managed TLS can't be provisioned inside the 15-minute window.
+apiVersion: v1
+kind: Service
+metadata:
+  name: multi-juicer-public
+  namespace: multi-juicer
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: multi-juicer
+    app.kubernetes.io/part-of: multi-juicer
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 8080
